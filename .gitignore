@@ -1,3 +1,4 @@
 dask-worker-space
 .ipynb_checkpoints
 *.ipynb
+.DS_Store
