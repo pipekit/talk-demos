@@ -10,9 +10,7 @@ spec:
       inputs:
         parameters:
           - name: pipeline-dir
-            value: ""
           - name: pipeline
-            value: ""
           - name: image
           - name: n-workers
             value: "5"
