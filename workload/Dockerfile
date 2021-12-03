@@ -16,4 +16,11 @@ COPY dask_pipeline.py ${PACKAGE_DIR}/dask_pipeline.py
 
 WORKDIR ${PACKAGE_DIR}
 
-ENTRYPOINT ["/bin/bash"]
+# Allows Docker/Kubernetes to access an arbitrary executable (also with venv activation)
+RUN cd / && \
+    echo \
+    "#!/bin/bash\
+    exec \"\$@\"" | sed 's/   */\n/g' > entrypoint.sh \
+    && chmod +x entrypoint.sh
+
+ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
