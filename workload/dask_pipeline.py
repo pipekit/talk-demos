@@ -25,12 +25,11 @@ def get_windiest_city(date: str) -> str:
         weather_data_day = weather_data.loc[date]
 
         # Update hottest city
-        try:
-            if weather_data_day.wind_speed >= max_wind_speed:
-                windiest_city = city
-                max_wind_speed = weather_data_day.wind_speed
-        except:
-            return (city, date)
+        if weather_data_day.wind_speed >= max_wind_speed:
+            windiest_city = city
+            max_wind_speed = weather_data_day.wind_speed
+
+    print(f"Windiest city at timestamp {date} is {windiest_city}")
 
     return windiest_city
 
@@ -48,7 +47,7 @@ def pipeline(cluster_address: str):
 
     # Submit dask tasks via the "futures" interface
     futures = []
-    for timestamp in timestamps[:1000]:
+    for timestamp in timestamps[:10]:
         future = client.submit(get_windiest_city, timestamp)
         futures.append(future)
 
@@ -61,6 +60,9 @@ def pipeline(cluster_address: str):
         counted_results[1], index=counted_results[0], name="windy_city_counts"
     )
     counted_results.to_csv("result.csv")
+
+    # Report the result
+    print(f"The Windiest city is {counted_results.index[np.argmax(counted_results)]}")
 
 
 if __name__ == "__main__":
