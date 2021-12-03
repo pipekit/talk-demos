@@ -22,7 +22,7 @@ spec:
   arguments:
     parameters:
       - name: n-workers
-        value: "10"
+        value: "4"
       - name: worker-mcpu
         value: "300"
       - name: worker-mem-gb
@@ -39,11 +39,11 @@ spec:
               parameters:
                 # Set parameters for this particular pipeline
                 - name: pipeline-dir
-                  value: "windy_city"
+                  value: "/windy_city"
                 - name: pipeline
                   value: "dask_pipeline.py"
                 - name: image
-                  value: "pipekit13/argocon21_dask:0.0.1"
+                  value: "pipekit13/argocon21_dask:0.0.2"
                 - name: scheduler-mcpu
                   value: "1000"
                 - name: scheduler-mem-gb

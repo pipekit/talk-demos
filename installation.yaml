@@ -741,7 +741,7 @@ spec:
         - --auth-mode
         - client
         - "--secure=false"
-        image: quay.io/argoproj/argocli:v3.2.4
+        image: quay.io/argoproj/argocli:v3.1.14
         name: argo-server
         ports:
         - containerPort: 2746
@@ -817,7 +817,7 @@ spec:
             - --configmap
             - workflow-controller-configmap
             - --executor-image
-            - argoproj/argoexec:v3.2.4
+            - argoproj/argoexec:v3.1.14
           command:
             - workflow-controller
           env:
@@ -826,7 +826,7 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: metadata.name
-          image: argoproj/workflow-controller:v3.2.4
+          image: argoproj/workflow-controller:v3.1.14
           livenessProbe:
             httpGet:
               path: /metrics
