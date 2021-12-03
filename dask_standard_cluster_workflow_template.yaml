@@ -97,8 +97,6 @@ spec:
                   value: "{{inputs.parameters.pipeline-mcpu}}"
                 - name: pipeline-mem-gb
                   value: "{{inputs.parameters.pipeline-mem-gb}}"
-                - name: notify-slack
-                  value: "{{inputs.parameters.notify-slack}}"
           - name: deploy-workers
             template: dask-worker-deployment
             arguments:
