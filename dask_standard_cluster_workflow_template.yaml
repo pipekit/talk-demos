@@ -1,0 +1,275 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: dask-distributed-standard-workflow
+spec:
+  entrypoint: main
+  templates:
+    - name: main
+      inputs:
+        parameters:
+          - name: pipeline-dir
+            value: ""
+          - name: pipeline
+            value: ""
+          - name: image
+          - name: n-workers
+            value: "5"
+          - name: worker-mcpu
+            value: "500"
+          - name: worker-mem-gb
+            value: "2"
+          - name: worker-n-threads
+            value: "1"
+          - name: scheduler-mcpu
+            value: "1000"
+          - name: scheduler-mem-gb
+            value: "4"
+          - name: pipeline-mcpu
+            value: "1000"
+          - name: pipeline-mem-gb
+            value: "4"
+      steps:
+        - - name: generate-dask-scheduler
+            template: dask-scheduler-generator
+            arguments:
+              parameters:
+                - name: image
+                  value: "{{inputs.parameters.image}}"
+                - name: pipeline-dir
+                  value: "{{inputs.parameters.pipeline-dir}}"
+                - name: scheduler-mcpu
+                  value: "{{inputs.parameters.scheduler-mcpu}}"
+                - name: scheduler-mem-gb
+                  value: "{{inputs.parameters.scheduler-mem-gb}}"
+        - - name: scale
+            template: dask-scaler
+            onExit: delete-dask-worker-deployment
+            arguments:
+              parameters:
+                - name: image
+                  value: "{{inputs.parameters.image}}"
+                - name: scheduler-ip
+                  value: "{{steps.generate-dask-scheduler.ip}}"
+                - name: pipeline
+                  value: "{{inputs.parameters.pipeline}}"
+                - name: pipeline-dir
+                  value: "{{inputs.parameters.pipeline-dir}}"
+                - name: n-workers
+                  value: "{{inputs.parameters.n-workers}}"
+                - name: worker-mcpu
+                  value: "{{inputs.parameters.worker-mcpu}}"
+                - name: worker-mem-gb
+                  value: "{{inputs.parameters.worker-mem-gb}}"
+                - name: worker-n-threads
+                  value: "{{inputs.parameters.worker-n-threads}}"
+                - name: pipeline-mcpu
+                  value: "{{inputs.parameters.pipeline-mcpu}}"
+                - name: pipeline-mem-gb
+                  value: "{{inputs.parameters.pipeline-mem-gb}}"
+
+    - name: dask-scaler
+      inputs:
+        parameters:
+          - name: scheduler-ip
+          - name: image
+          - name: pipeline-dir
+          - name: pipeline
+          - name: n-workers
+          - name: worker-mcpu
+          - name: worker-mem-gb
+          - name: worker-n-threads
+          - name: pipeline-mcpu
+          - name: pipeline-mem-gb
+      steps:
+        - - name: primary-pipeline
+            template: primary-pipeline
+            arguments:
+              parameters:
+                - name: pipeline-dir
+                  value: "{{inputs.parameters.pipeline-dir}}"
+                - name: pipeline
+                  value: "{{inputs.parameters.pipeline}}"
+                - name: image
+                  value: "{{inputs.parameters.image}}"
+                - name: pipeline-mcpu
+                  value: "{{inputs.parameters.pipeline-mcpu}}"
+                - name: pipeline-mem-gb
+                  value: "{{inputs.parameters.pipeline-mem-gb}}"
+                - name: notify-slack
+                  value: "{{inputs.parameters.notify-slack}}"
+          - name: deploy-workers
+            template: dask-worker-deployment
+            arguments:
+              parameters:
+                - name: scheduler-ip
+                  value: "{{inputs.parameters.scheduler-ip}}"
+                - name: image
+                  value: "{{inputs.parameters.image}}"
+                - name: pipeline-dir
+                  value: "{{inputs.parameters.pipeline-dir}}"
+                - name: n-workers
+                  value: "{{inputs.parameters.n-workers}}"
+                - name: worker-mcpu
+                  value: "{{inputs.parameters.worker-mcpu}}"
+                - name: worker-mem-gb
+                  value: "{{inputs.parameters.worker-mem-gb}}"
+                - name: worker-n-threads
+                  value: "{{inputs.parameters.worker-n-threads}}"
+
+    - name: dask-scheduler-generator
+      metadata:
+        labels:
+          role: "dask-scheduler"
+        annotations:
+          "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
+      daemon: true
+      inputs:
+        parameters:
+          - name: image
+          - name: pipeline-dir
+          - name: scheduler-mcpu
+          - name: scheduler-mem-gb
+      podSpecPatch: |
+        {
+          "containers": [
+            {
+              "name":"main",
+              "resources":{
+                "limits":{
+                  "memory": "{{inputs.parameters.scheduler-mem-gb}}Gi",
+                  "cpu": "{{inputs.parameters.scheduler-mcpu}}m"
+                },
+                "requests":{
+                  "memory": "{{inputs.parameters.scheduler-mem-gb}}Gi",
+                  "cpu": "{{inputs.parameters.scheduler-mcpu}}m"
+                }
+              }
+            }
+          ]
+        }
+      container:
+        image: "{{inputs.parameters.image}}"
+        imagePullPolicy: "Always"
+        args: ["dask-scheduler", "--idle-timeout=300"]
+        env:
+          - name: PYTHONPATH
+            value: "{{inputs.parameters.pipeline-dir}}"
+
+    - name: primary-pipeline
+      metadata:
+        labels:
+          role: "dask-workfow"
+        annotations:
+          "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
+      inputs:
+        parameters:
+          - name: pipeline
+          - name: pipeline-dir
+          - name: image
+          - name: pipeline-mcpu
+          - name: pipeline-mem-gb
+      podSpecPatch: |
+        {
+          "containers": [
+            {
+              "name":"main",
+              "resources":{
+                "limits":{
+                  "memory": "{{inputs.parameters.pipeline-mem-gb}}Gi",
+                  "cpu": "{{inputs.parameters.pipeline-mcpu}}m"
+                },
+                "requests":{
+                  "memory": "{{inputs.parameters.pipeline-mem-gb}}Gi",
+                  "cpu": "{{inputs.parameters.pipeline-mcpu}}m"
+                }
+              }
+            }
+          ]
+        }
+      container:
+        image: "{{inputs.parameters.image}}"
+        imagePullPolicy: "Always"
+        args: ["python", "{{inputs.parameters.pipeline}}"]
+        workingDir: "{{inputs.parameters.pipeline-dir}}"
+        env:
+          - name: PYTHONPATH
+            value: "{{inputs.parameters.pipeline-dir}}"
+      outputs:
+        artifacts:
+          - name: result
+            path: "{{inputs.parameters.pipeline-dir}}/result.csv"
+            archive:
+              none: {}
+
+    - name: dask-worker-deployment
+      daemon: true
+      inputs:
+        parameters:
+          - name: image
+          - name: scheduler-ip
+          - name: pipeline-dir
+          - name: n-workers
+          - name: worker-mcpu
+          - name: worker-mem-gb
+          - name: worker-n-threads
+      resource:
+        action: create
+        manifest: |
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: dask-worker-{{workflow.name}}
+            labels:
+              app: dask-worker-{{workflow.name}}
+          spec:
+            replicas: {{inputs.parameters.n-workers}}
+            selector:
+              matchLabels:
+                app: dask-worker-{{workflow.name}}
+            template:
+              metadata:
+                labels:
+                  app: dask-worker-{{workflow.name}}
+              spec:
+                containers:
+                - name: dask-worker-{{workflow.name}}
+                  image: {{inputs.parameters.image}}
+                  workingDir: {{inputs.parameters.pipeline-dir}}
+                  resources:
+                    requests:
+                      memory: "{{inputs.parameters.worker-mem-gb}}Gi"
+                      cpu: "{{inputs.parameters.worker-mcpu}}m"
+                    limits:
+                      memory: "{{inputs.parameters.worker-mem-gb}}Gi"
+                      cpu: "{{inputs.parameters.worker-mcpu}}m"
+                  args:
+                    - "dask-worker"
+                    - "{{inputs.parameters.scheduler-ip}}:8786"
+                    - "--nthreads={{inputs.parameters.worker-n-threads}}"
+                    - "--death-timeout=60"
+                    - "--memory-limit={{inputs.parameters.worker-mem-gb}}Gi"
+                  env:
+                    - name: PYTHONPATH
+                      value: "{{inputs.parameters.pipeline-dir}}"
+
+    - name: wait-dask-worker-deployment
+      resource:
+        action: get
+        successCondition: status.readyReplicas > 0
+        manifest: |
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: dask-worker-{{workflow.name}}
+
+    - name: delete-dask-worker-deployment
+      resource:
+        action: delete
+        flags: ["--ignore-not-found"]
+        manifest: |
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: dask-worker-{{workflow.name}}
