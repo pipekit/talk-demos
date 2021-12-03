@@ -89,6 +89,8 @@ spec:
                   value: "{{inputs.parameters.pipeline-dir}}"
                 - name: pipeline
                   value: "{{inputs.parameters.pipeline}}"
+                - name: scheduler-ip
+                  value: "{{inputs.parameters.scheduler-ip}}"
                 - name: image
                   value: "{{inputs.parameters.image}}"
                 - name: pipeline-mcpu
@@ -163,6 +165,7 @@ spec:
         parameters:
           - name: pipeline
           - name: pipeline-dir
+          - name: scheduler-ip
           - name: image
           - name: pipeline-mcpu
           - name: pipeline-mem-gb
@@ -187,7 +190,12 @@ spec:
       container:
         image: "{{inputs.parameters.image}}"
         imagePullPolicy: "Always"
-        args: ["python", "{{inputs.parameters.pipeline}}"]
+        args:
+          [
+            "python",
+            "{{inputs.parameters.pipeline}}",
+            "{{inputs.parameters.scheduler-ip}}:8786",
+          ]
         workingDir: "{{inputs.parameters.pipeline-dir}}"
         env:
           - name: PYTHONPATH
