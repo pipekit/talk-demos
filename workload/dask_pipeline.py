@@ -47,7 +47,7 @@ def pipeline(cluster_address: str):
 
     # Submit dask tasks via the "futures" interface
     futures = []
-    for timestamp in timestamps[:10]:
+    for timestamp in timestamps[:500]:
         future = client.submit(get_windiest_city, timestamp)
         futures.append(future)
 
