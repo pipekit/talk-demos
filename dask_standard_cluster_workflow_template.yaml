@@ -9,6 +9,7 @@ spec:
     - name: main
       inputs:
         parameters:
+          - name: pipeline-arguments
           - name: pipeline-dir
           - name: pipeline
           - name: image
@@ -46,6 +47,8 @@ spec:
             onExit: delete-dask-worker-deployment
             arguments:
               parameters:
+                - name: pipeline-arguments
+                  value: "{{inputs.parameters.pipeline-arguments}}"
                 - name: image
                   value: "{{inputs.parameters.image}}"
                 - name: scheduler-ip
@@ -70,6 +73,7 @@ spec:
     - name: dask-scaler
       inputs:
         parameters:
+          - name: pipeline-arguments
           - name: scheduler-ip
           - name: image
           - name: pipeline-dir
@@ -85,6 +89,8 @@ spec:
             template: primary-pipeline
             arguments:
               parameters:
+                - name: pipeline-arguments
+                  value: "{{inputs.parameters.pipeline-arguments}}"
                 - name: pipeline-dir
                   value: "{{inputs.parameters.pipeline-dir}}"
                 - name: pipeline
@@ -163,6 +169,7 @@ spec:
           "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
       inputs:
         parameters:
+          - name: pipeline-arguments
           - name: pipeline
           - name: pipeline-dir
           - name: scheduler-ip
@@ -195,17 +202,18 @@ spec:
             "python",
             "{{inputs.parameters.pipeline}}",
             "{{inputs.parameters.scheduler-ip}}:8786",
+            "{{inputs.parameters.pipeline-arguments}}",
           ]
         workingDir: "{{inputs.parameters.pipeline-dir}}"
         env:
           - name: PYTHONPATH
             value: "{{inputs.parameters.pipeline-dir}}"
       outputs:
-        artifacts:
-          - name: result
-            path: "{{inputs.parameters.pipeline-dir}}/result.csv"
-            archive:
-              none: {}
+        # artifacts:
+        #   - name: result
+        #     path: "{{inputs.parameters.pipeline-dir}}/result.csv"
+        #     archive:
+        #       none: {}
 
     - name: dask-worker-deployment
       daemon: true
