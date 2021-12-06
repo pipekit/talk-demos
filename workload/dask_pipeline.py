@@ -36,7 +36,7 @@ def get_windiest_city(date: str) -> str:
 
 ###################
 # Dask pipeline
-def pipeline(cluster_address: str):
+def pipeline(cluster_address: str, max_timestamps: int = 500):
     """A simple Dask pipeline which searches for the windiest city in Spain. Requires passing in an
     IP address (`cluster_address`) for a pre-existing dask cluster"""
     # Create a dask client
@@ -47,7 +47,7 @@ def pipeline(cluster_address: str):
 
     # Submit dask tasks via the "futures" interface
     futures = []
-    for timestamp in timestamps[:500]:
+    for timestamp in timestamps[max_timestamps]:
         future = client.submit(get_windiest_city, timestamp)
         futures.append(future)
 
@@ -69,5 +69,6 @@ if __name__ == "__main__":
     import sys
 
     cluster_address = sys.argv[1]
+    max_timestamps = int(sys.argv[2])
 
-    pipeline(cluster_address)
+    pipeline(cluster_address, max_timestamps)
