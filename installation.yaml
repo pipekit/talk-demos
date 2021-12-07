@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: pipekit
+  name: customer
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -525,7 +525,7 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: argo-pipekit-role
+  name: argo-customer-role
 rules:
   - apiGroups:
       - "apps"
@@ -631,15 +631,15 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: argo-pipekit-binding
+  name: argo-customer-binding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: argo-pipekit-role
+  name: argo-customer-role
 subjects:
   - kind: ServiceAccount
     name: default
-    namespace: pipekit
+    namespace: customer
 ---
 apiVersion: v1
 kind: Secret
@@ -722,40 +722,40 @@ spec:
         app: argo-server
     spec:
       containers:
-      - args:
-        - server
-        - --auth-mode
-        - server
-        - --auth-mode
-        - client
-        - "--secure=false"
-        image: quay.io/argoproj/argocli:v3.1.14
-        name: argo-server
-        ports:
-        - containerPort: 2746
-          name: web
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 2746
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 20
-        securityContext:
-          capabilities:
-            drop:
-            - ALL
-        volumeMounts:
-        - mountPath: /tmp
-          name: tmp
+        - args:
+            - server
+            - --auth-mode
+            - server
+            - --auth-mode
+            - client
+            - "--secure=false"
+          image: quay.io/argoproj/argocli:v3.1.14
+          name: argo-server
+          ports:
+            - containerPort: 2746
+              name: web
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 2746
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp
       nodeSelector:
         kubernetes.io/os: linux
       securityContext:
         runAsNonRoot: true
       serviceAccountName: argo-server
       volumes:
-      - emptyDir: {}
-        name: tmp
+        - emptyDir: {}
+          name: tmp
 ---
 apiVersion: v1
 data:
