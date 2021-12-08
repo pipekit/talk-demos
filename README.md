@@ -16,6 +16,7 @@ After performing the related talk at ArgoCon21, a link to the recording will be 
 ## The pipeline
 
 This project includes a Dask data pipeline which showcases a simple set-up of the [Futures Interface](https://docs.dask.org/en/stable/futures.html). The pipeline will:
+* Connect to a pre-existing Dask Scheduler
 * Consider a set of timeseries weather data for major cities in Spain
 * Submit a data-processing task to the available Dask Workers which accepts a single time stamp argument, and returns the name of a city
     - Takes the input timestamp, and extracts windspeed data at this timestamp for each city
