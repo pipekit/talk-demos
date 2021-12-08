@@ -45,7 +45,7 @@ spec:
                 - name: pipeline
                   value: "dask_pipeline.py"
                 - name: image
-                  value: "customer13/argocon21_dask:0.0.4"
+                  value: "pipekit13/argocon21_dask:0.0.4"
                 - name: scheduler-mcpu
                   value: "1000"
                 - name: scheduler-mem-gb
