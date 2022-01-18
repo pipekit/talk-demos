@@ -523,7 +523,7 @@ subjects:
     namespace: default
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: argo-customer-role
 rules:
@@ -632,6 +632,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: argo-customer-binding
+  namespace: customer
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
