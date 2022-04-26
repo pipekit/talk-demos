@@ -10,8 +10,7 @@
 
 ## The talk
 
-After performing the related talk at ArgoCon21, a link to the recording will be posted here. Until then, you'll just have to wait like a normal person...
-
+[![Processing petabytes in Python with Argo Workflows & Dask](https://img.youtube.com/vi/f5lPS9WKy_8/0.jpg)](https://www.youtube.com/watch?v=f5lPS9WKy_8)
 
 ## The pipeline
 
