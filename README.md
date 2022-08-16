@@ -1,5 +1,5 @@
 # Processing petabytes in Python with Argo Workflows & Dask
-## Goal of this reposity
+## Goal of this repository
 
 * Showcase the combination of Dask and Argo Workflows to dynamically scale a compuational workload
 * Provide a basic Argo-workflows installation applicable to a production-grade kubernetes clusters
