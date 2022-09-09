@@ -1,3 +1,3 @@
 # README
 
-This repo contain demos from ArgoCon and OSS 2022.
+This repo contains demos from ArgoCon and OSS 2022.
