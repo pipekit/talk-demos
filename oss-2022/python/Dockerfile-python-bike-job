@@ -1,0 +1,7 @@
+FROM gcr.io/spark-operator/spark-py:v2.4.5
+MAINTAINER pipekit.io
+
+ADD bikeTypeJob.py /app/
+ADD bikeRideLengthJob.py /app/
+
+ENTRYPOINT ["/opt/entrypoint.sh"]

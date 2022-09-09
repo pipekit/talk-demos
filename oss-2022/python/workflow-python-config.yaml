@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: workflow-python-config
+data:
+  awsRegion: us-east-1
+  awsBucketName: <bucket-name>
+  downloadUrl: https://www.kaggle.com/api/v1/datasets/download/koustavghosh149/cyclistic-bike-share-user-dataset-1-year
+  fileLocation: <dataset-location>
