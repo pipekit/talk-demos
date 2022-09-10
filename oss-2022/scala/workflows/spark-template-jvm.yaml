@@ -1,0 +1,130 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: spark-data-connector-jvm
+spec:
+  entrypoint: spark
+  templates:
+    - name: spark
+      inputs:
+        parameters:
+          - name: sparkConnectorName
+            default: spark-job
+          - name: namespace
+          - name: type
+          - name: mainApplicationFile
+          - name: mainClass
+          - name: imagePullSecret
+            default: ""
+          - name: globalImage
+            default: ""
+          - name: driverImage
+            default: ""
+          - name: executorImage
+            default: ""
+          - name: imagePullPolicy
+            default: IfNotPresent
+          - name: globalServiceAccount
+            default: default
+          - name: driverServiceAccount
+            default: ""
+          - name: executorServiceAccount
+            default: ""
+          - name: driverCoreRequest
+            default: "1"
+          - name: executorCoreRequest
+            default: "1"
+          - name: driverCoreLimit
+            default: "99999"
+          - name: executorCoreLimit
+            default: "99999"
+          - name: driverMemory
+            default: "1024m"
+          - name: executorMemory
+            default: "1024m"
+          - name: driverJvmOptions
+            default: ""
+          - name: executorJvmOptions
+            default: ""
+          - name: driverEnvConfigMap
+            default: "driver-env-configmap"
+          - name: executorEnvConfigMap
+            default: "executor-env-configmap"
+          - name: executorInstances
+            default: "1"
+          - name: jars
+            default: ""
+          - name: jarsDownloadDir
+            default: ""
+          - name: files
+            default: ""
+          - name: filesDownloadDir
+            default: ""
+          - name: repositories
+            default: ""
+          - name: packages
+            default: ""
+          - name: excludePackages
+            default: ""
+      outputs:
+        parameters:
+          - name: spark-job-name
+            valueFrom:
+              jsonPath: '{.metadata.name}'
+          - name: spark-job-namespace
+            valueFrom:
+              jsonPath: '{.metadata.namespace}'
+
+      resource:
+        action: create
+        successCondition: status.applicationState.state == COMPLETED
+        failureCondition: status.applicationState.state == FAILED
+        manifest: |
+          apiVersion: "sparkoperator.k8s.io/v1beta2"
+          kind: SparkApplication
+          metadata:
+            generateName: {{inputs.parameters.sparkConnectorName}}-
+            namespace: {{inputs.parameters.namespace}}
+          spec:
+            type: {{inputs.parameters.type}}
+            mode: cluster
+            imagePullPolicy: {{inputs.parameters.imagePullPolicy}}
+            imagePullSecrets: [ {{inputs.parameters.imagePullSecret}} ]
+            mainClass: {{inputs.parameters.mainClass}}
+            mainApplicationFile: {{inputs.parameters.mainApplicationFile}}
+            sparkVersion: "3.1.1"
+            deps:
+              jars: [ {{inputs.parameters.jars}} ]
+              jarsDownloadDir: {{inputs.parameters.jarsDownloadDir}}
+              files: [ {{inputs.parameters.files}} ]
+              filesDownloadDir: {{inputs.parameters.filesDownloadDir}}
+              repositories: [ {{inputs.parameters.repositories}} ]
+              packages: [ {{inputs.parameters.packages}} ]
+              excludePackages: [ {{inputs.parameters.excludePackages}} ]
+            driver:
+              image: {{=sprig.default(inputs.parameters.driverImage, inputs.parameters.globalImage)}}
+              coreRequest: "{{inputs.parameters.driverCoreRequest}}"
+              coreLimit: "{{inputs.parameters.driverCoreLimit}}"
+              memory: {{inputs.parameters.driverMemory}}
+              serviceAccount: {{=sprig.default(inputs.parameters.driverServiceAccount, inputs.parameters.globalServiceAccount)}}
+              javaOptions: "{{inputs.parameters.driverJvmOptions}}"
+              envFrom:
+                - configMapRef:
+                    name: {{inputs.parameters.driverEnvConfigMap}}
+                    optional: true
+              labels:
+                workflows.argoproj.io/workflow: {{workflow.name}}
+            executor:
+              image: {{=sprig.default(inputs.parameters.executorImage, inputs.parameters.globalImage)}}
+              coreRequest: "{{inputs.parameters.executorCoreRequest}}"
+              coreLimit: "{{inputs.parameters.executorCoreLimit}}"
+              instances: {{inputs.parameters.executorInstances}}
+              memory: {{inputs.parameters.executorMemory}}
+              serviceAccount: {{=sprig.default(inputs.parameters.executorServiceAccount, inputs.parameters.globalServiceAccount)}}
+              javaOptions: "{{inputs.parameters.executorJvmOptions}}"
+              envFrom:
+                - configMapRef:
+                    name: {{inputs.parameters.executorEnvConfigMap}}
+                    optional: true
+              labels:
+                workflows.argoproj.io/workflow: {{workflow.name}}

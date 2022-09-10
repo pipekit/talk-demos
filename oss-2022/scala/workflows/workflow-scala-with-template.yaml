@@ -1,0 +1,62 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: scala-argo-spark-
+  namespace: argo
+spec:
+  entrypoint: dag
+  templates:
+    - name: dag
+      dag:
+        tasks:
+          - name: bike-type
+            templateRef:
+              name: spark-data-connector-jvm
+              template: spark
+              clusterScope: true
+            arguments:
+              parameters:
+                - name: type
+                  value: "Scala"
+                - name: mainClass
+                  value: "io.pipekit.oss.spark.argo.BikeTypeJob"
+                - name: globalImage
+                  value: "argo-spark-integration-scala:latest"
+                - name: mainApplicationFile
+                  value: "local:///app/bike.jar"
+                - name: namespace
+                  value: "default"
+                - name: driverCoreRequest
+                  value: "200m"
+                - name: executorCoreRequest
+                  value: "200m"
+                - name: driverServiceAccount
+                  value: "spark-driver"
+                - name: executorInstances
+                  value: 2
+
+          - name: bike-ride-length
+            templateRef:
+              name: spark-data-connector-jvm
+              template: spark
+              clusterScope: true
+            arguments:
+              parameters:
+                - name: type
+                  value: "Scala"
+                - name: mainClass
+                  value: "io.pipekit.oss.spark.argo.BikeRideLengthJob"
+                - name: globalImage
+                  value: "argo-spark-integration-scala:latest"
+                - name: mainApplicationFile
+                  value: "local:///app/bike.jar"
+                - name: namespace
+                  value: "default"
+                - name: driverCoreRequest
+                  value: "200m"
+                - name: executorCoreRequest
+                  value: "200m"
+                - name: driverServiceAccount
+                  value: "spark-driver"
+                - name: executorInstances
+                  value: 2

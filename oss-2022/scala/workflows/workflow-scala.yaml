@@ -1,0 +1,87 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: scala-argo-spark-
+  namespace: argo
+spec:
+  entrypoint: dag
+  templates:
+    - name: dag
+      dag:
+        tasks:
+          - name: bike-type
+            template: bike-type
+          - name: bike-ride-length
+            template: bike-ride-length
+
+
+    - name: bike-type
+      resource:
+        action: create
+        successCondition: status.applicationState.state == COMPLETED
+        failureCondition: status.applicationState.state == FAILED
+        manifest: |
+          apiVersion: "sparkoperator.k8s.io/v1beta2"
+          kind: SparkApplication
+          metadata:
+            generateName: spark-bike-type-
+            namespace: default
+          spec:
+            type: Scala
+            mode: cluster
+            image: "argo-spark-integration-scala:latest"
+            imagePullPolicy: Never
+            mainClass: io.pipekit.oss.spark.argo.BikeTypeJob
+            mainApplicationFile: "local:///app/bike.jar"
+            sparkVersion: "3.1.1"
+            restartPolicy:
+              type: Never
+            driver:
+              coreRequest: "200m"
+              coreLimit: "99999"
+              memory: "1024m"
+              serviceAccount: spark-driver
+              labels:
+                version: 3.1.1
+            executor:
+              coreRequest: "200m"
+              coreLimit: "99999"
+              instances: 2
+              memory: "1024m"
+              labels:
+                version: 3.1.1
+    - name: bike-ride-length
+      resource:
+        action: create
+        successCondition: status.applicationState.state == COMPLETED
+        failureCondition: status.applicationState.state == FAILED
+        manifest: |
+          apiVersion: "sparkoperator.k8s.io/v1beta2"
+          kind: SparkApplication
+          metadata:
+            generateName: spark-bike-ride-length-
+            namespace: default
+          spec:
+            type: Scala
+            mode: cluster
+            image: "argo-spark-integration-scala:latest"
+            imagePullPolicy: Never
+            mainClass: io.pipekit.oss.spark.argo.BikeRideLengthJob
+            mainApplicationFile: "local:///app/bike.jar"
+            sparkVersion: "3.1.1"
+            restartPolicy:
+              type: Never
+            driver:
+              coreRequest: "200m"
+              coreLimit: "99999"
+              memory: "1024m"
+              serviceAccount: spark-driver
+              labels:
+                version: 3.1.1
+            executor:
+              coreRequest: "200m"
+              coreLimit: "99999"
+              instances: 2
+              memory: "1024m"
+              labels:
+                version: 3.1.1

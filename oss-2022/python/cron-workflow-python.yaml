@@ -1,0 +1,188 @@
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  generateName: python-argo-spark-
+  namespace: argo
+spec:
+  schedule: "* * * * *"
+  concurrencyPolicy: "Forbid"
+  startingDeadlineSeconds: 0
+  workflowSpec:
+    entrypoint: dag
+    templates:
+    - name: dag
+      dag:
+        tasks:
+          - name: download-job
+            template: download-job
+          - name: bike-type
+            template: bike-type
+            depends: "download-job"
+          - name: bike-ride-length
+            template: bike-ride-length
+            depends: "download-job"
+
+    - name: download-job
+      container:
+        image: argo-spark-integration-python-download-job:latest
+        imagePullPolicy: IfNotPresent
+        command: [python]
+        args: ["download-file.py"]
+        env:
+          - name: API_USER
+            valueFrom:
+              secretKeyRef:
+                name: workflow-python-secrets
+                key: apiUser
+          - name: API_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: workflow-python-secrets
+                key: apiPassword
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: workflow-python-secrets
+                key: awsAccessKeyId
+          - name: AWS_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: workflow-python-secrets
+                key: awsSecretKey
+          - name: AWS_REGION
+            valueFrom:
+              configMapKeyRef:
+                name: workflow-python-config
+                key: awsRegion
+          - name: AWS_BUCKET_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: workflow-python-config
+                key: awsBucketName
+          - name: DOWNLOAD_URL
+            valueFrom:
+              configMapKeyRef:
+                name: workflow-python-config
+                key: downloadUrl
+
+    - name: bike-type
+      resource:
+        action: create
+        successCondition: status.applicationState.state == COMPLETED
+        failureCondition: status.applicationState.state == FAILED
+        manifest: |
+          apiVersion: "sparkoperator.k8s.io/v1beta2"
+          kind: SparkApplication
+          metadata:
+            generateName: spark-bike-type-
+            namespace: default
+          spec:
+            type: Python
+            mode: cluster
+            image: "argo-spark-integration-python-bike-job:latest"
+            imagePullPolicy: Never
+            mainApplicationFile: "local:///app/bikeTypeJob.py"
+            sparkVersion: "2.4.5"
+            hadoopConf:
+              "fs.s3a.impl": org.apache.hadoop.fs.s3a.S3AFileSystem
+              "com.amazonaws.services.s3.enableV4": "true"
+              "fs.s3a.aws.credentials.provider": org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider
+
+            restartPolicy:
+              type: Never
+            sparkConf:
+              spark.jars.packages: "org.apache.hadoop:hadoop-aws:2.7.4,org.apache.hadoop:hadoop-common:2.7.4,com.amazonaws:aws-java-sdk:1.7.4"
+              spark.jars.ivy: "/tmp/ivy"
+              spark.jars.repositories: "https://repo1.maven.org/maven2/"
+            driver:
+              coreRequest: "200m"
+              coreLimit: "99999"
+              memory: "1024m"
+              serviceAccount: spark-driver
+              env:
+              - name: FILE_LOCATION
+                valueFrom:
+                  configMapKeyRef:
+                    name: workflow-python-config
+                    key: fileLocation 
+              - name: AWS_ACCESS_KEY_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: workflow-python-secrets
+                    key: awsAccessKeyId
+              - name: AWS_SECRET_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: workflow-python-secrets
+                    key: awsSecretKey
+              labels:
+                version: 2.4.5
+            executor:
+              coreRequest: "200m"
+              coreLimit: "99999"
+              instances: 2
+              memory: "1024m"
+              env:
+              - name: FILE_LOCATION
+                valueFrom:
+                  configMapKeyRef:
+                    name: workflow-python-config
+                    key: fileLocation
+              labels:
+                version: 2.4.5
+
+    - name: bike-ride-length
+      resource:
+        action: create
+        successCondition: status.applicationState.state == COMPLETED
+        failureCondition: status.applicationState.state == FAILED
+        manifest: |
+          apiVersion: "sparkoperator.k8s.io/v1beta2"
+          kind: SparkApplication
+          metadata:
+            generateName: spark-bike-ride-length-
+            namespace: default
+          spec:
+            type: Python
+            mode: cluster
+            image: "argo-spark-integration-python-bike-job:latest"
+            imagePullPolicy: Never
+            mainApplicationFile: "local:///app/bikeRideLengthJob.py"
+            sparkVersion: "2.4.5"
+
+            restartPolicy:
+              type: Never
+            sparkConf:
+              spark.jars.packages: "org.apache.hadoop:hadoop-aws:2.7.4,org.apache.hadoop:hadoop-common:2.7.4,com.amazonaws:aws-java-sdk:1.7.4"
+              spark.jars.ivy: "/tmp/ivy"
+              spark.jars.repositories: "https://repo1.maven.org/maven2/"
+            driver:
+              coreRequest: "200m"
+              coreLimit: "99999"
+              memory: "1024m"
+              serviceAccount: spark-driver
+              env:
+              - name: FILE_LOCATION
+                valueFrom:
+                  configMapKeyRef:
+                    name: workflow-python-config
+                    key: fileLocation 
+              - name: AWS_ACCESS_KEY_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: workflow-python-secrets
+                    key: awsAccessKeyId
+              - name: AWS_SECRET_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: workflow-python-secrets
+                    key: awsSecretKey
+              labels:
+                version: 2.4.5
+            executor:
+              coreRequest: "200m"
+              coreLimit: "99999"
+              instances: 2
+              memory: "1024m"
+              labels:
+                version: 2.4.5
