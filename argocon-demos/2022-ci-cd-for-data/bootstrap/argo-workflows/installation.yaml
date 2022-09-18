@@ -1069,6 +1069,9 @@ spec:
       containers:
       - args:
         - server
+        - --secure=false
+        - --auth-mode
+        - server
         env: []
         image: quay.io/argoproj/argocli:v3.3.9
         name: argo-server
@@ -1079,7 +1082,7 @@ spec:
           httpGet:
             path: /
             port: 2746
-            scheme: HTTPS
+            scheme: HTTP
           initialDelaySeconds: 10
           periodSeconds: 20
         securityContext:
