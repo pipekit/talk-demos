@@ -1,0 +1,28 @@
+# Info on GitHub Webhook: https://developer.github.com/v3/repos/hooks/#create-a-hook
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: github
+spec:
+  service:
+    ports:
+      - name: example
+        port: 13000
+        targetPort: 13000
+  github:
+    example:
+      owner: "pipekit"
+      repository: "talk-demos"
+      webhook:
+        endpoint: "/push"
+        port: "13000"
+        method: "POST"
+        url: https://smee.io/BZeA7pvATUxwZrhl
+      events:
+        - "*"
+      webhookSecret:
+        name: github-access
+        key: secret
+      insecure: true
+      active: true
+      contentType: "json"

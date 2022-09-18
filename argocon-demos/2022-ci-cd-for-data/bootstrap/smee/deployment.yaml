@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: smee
+  name: smee
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smee
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: smee
+    spec:
+      containers:
+      - image: smee-github
+        imagePullPolicy: Never
+        name: smee
+      restartPolicy: Always
+status: {}
