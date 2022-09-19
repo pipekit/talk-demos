@@ -98,14 +98,6 @@ spec:
                       action: apply
                       manifest: "{{inputs.parameters.workflowtemplate}}"
 
-                  - name: delete-template
-                    inputs:
-                      parameters:
-                        - name: workflowtemplate
-                    resource:
-                      action: delete
-                      manifest: "{{inputs.parameters.workflowtemplate}}"
-
                   - name: assert-equal
                     inputs:
                       parameters:
@@ -129,7 +121,7 @@ spec:
                             - name: app_repo
                               value: talk-demos
                             - name: git_branch
-                              value: 53bfbea
+                              value: "{{workflow.parameters.short-sha}}"
                     - - name: get-template
                         template: get-template
                     - - name: apply-template
@@ -150,12 +142,6 @@ spec:
                           - { input: '2', expected: '4' }
                           - { input: '4', expected: '8' }
                           - { input: '0', expected: '0' }
-                    - - name: delete-template
-                        template: delete-template
-                        arguments:
-                          parameters:
-                            - name: workflowtemplate
-                              value: "{{steps.get-template.outputs.result}}"
 
           parameters:
             - src:
