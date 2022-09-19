@@ -1,0 +1,18 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: doubler
+spec:
+  entrypoint: double
+  templates:
+    - name: double
+      inputs:
+        parameters:
+          - name: input
+      script:
+        command:
+          - python
+        image: "python:alpine3.6"
+        source: "print(int(\"{{inputs.parameters.input}}\") * 2)"
+

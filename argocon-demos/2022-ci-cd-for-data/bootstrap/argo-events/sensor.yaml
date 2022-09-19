@@ -1,0 +1,152 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: github
+spec:
+  dependencies:
+    - name: test-dep
+      eventSourceName: github
+      eventName: example
+      filters:
+        data:
+          - path: body.action
+            type: string
+            value:
+              - opened
+              - edited
+              - reopened
+              - synchronize
+          - path: body.pull_request.state
+            type: string
+            value:
+              - open
+          - path: body.pull_request.base.ref
+            type: string
+            value:
+              - main
+  triggers:
+    - template:
+        name: github-workflow-trigger
+        k8s:
+          operation: create
+          source:
+            resource:
+              apiVersion: argoproj.io/v1alpha1
+              kind: Workflow
+              metadata:
+                name: github-doubler-test-
+              spec:
+                entrypoint: assert-doubler
+                arguments:
+                  parameters:
+                    - name: pr-title
+                    - name: pr-number
+                    - name: short-sha
+
+                volumeClaimTemplates:
+                - metadata:
+                    name: code
+                  spec:
+                    accessModes: [ "ReadWriteOnce" ]
+                    resources:
+                      requests:
+                        storage: 1Gi
+
+                templates:
+                  - name: get-template
+                    container:
+                      image: alpine
+                      command: [sh, -c]
+                      args: [
+                        'cd /workdir/talk-demos/argocon-demos/2022-ci-cd-for-data/bootstrap/argo-workflows;
+                        cat doubler-template.yaml;'
+                      ]
+                      volumeMounts:
+                      - name: code
+                        mountPath: /workdir
+
+                  - name: apply-template
+                    inputs:
+                      parameters:
+                        - name: workflowtemplate
+                    resource:
+                      action: apply
+                      manifest: "{{inputs.parameters.workflowtemplate}}"
+
+                  - name: run-doubler-workflow
+                    inputs:
+                      parameters:
+                        - name: input
+                        - name: expected
+                    resource:
+                      action: create
+                      successCondition: status.phase == Succeeded
+                      failureCondition: status.phase in (Failed, Error)
+                      manifest: |
+                        apiVersion: argoproj.io/v1alpha1
+                        kind: Workflow
+                        metadata:
+                          generateName: assert-doubler-
+                        spec:
+                          arguments:
+                            parameters:
+                              - name: input
+                                value: "{{inputs.parameters.input}}"
+                              - name: expected
+                                value: "{{inputs.parameters.expected}}"
+                          workflowTemplateRef:
+                            name: assert-doubler
+
+                  - name: assert-doubler
+                    steps:
+                    - - name: checkout-pr
+                        templateRef:
+                          name: git-checkout-pr
+                          template: git-checkout-pr
+                        arguments:
+                          parameters:
+                            - name: app_repo
+                              value: talk-demos
+                            - name: git_branch
+                              value: "{{workflow.parameters.short-sha}}"
+                    - - name: get-template
+                        template: get-template
+                    - - name: apply-template
+                        template: apply-template
+                        arguments:
+                          parameters:
+                            - name: workflowtemplate
+                              value: "{{steps.get-template.outputs.result}}"
+                    - - name: run-doubler-workflow
+                        template: run-doubler-workflow
+                        arguments:
+                          parameters:
+                          - name: input
+                            value: "{{item.input}}"
+                          - name: expected
+                            value: "{{item.expected}}"
+                        withItems:
+                          - { input: '2', expected: '4' }
+                          - { input: '4', expected: '8' }
+                          - { input: '0', expected: '0' }
+
+          parameters:
+            - src:
+                dependencyName: test-dep
+                dataKey: body.pull_request.title
+              dest: spec.arguments.parameters.0.value
+            - src:
+                dependencyName: test-dep
+                dataKey: body.pull_request.number
+              dest: spec.arguments.parameters.1.value
+            - src:
+                dependencyName: test-dep
+                dataTemplate: "{{ .Input.body.pull_request.head.sha | substr 0 7 }}"
+              dest: spec.arguments.parameters.2.value
+            - src:
+                dependencyName: test-dep
+                dataTemplate: "{{ .Input.body.pull_request.number }}-{{ .Input.body.pull_request.head.sha | substr 0 7 }}"
+              dest: metadata.name
+              operation: append
+      retryStrategy:
+        uteps: 3
