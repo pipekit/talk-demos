@@ -131,7 +131,7 @@ spec:
                             - name: app_repo
                               value: talk-demos
                             - name: git_branch
-                              value: d83bf6c
+                              value: e060cca
                     - - name: get-template
                         template: get-template
                     - - name: apply-template
