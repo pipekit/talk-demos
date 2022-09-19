@@ -34,25 +34,62 @@ spec:
               apiVersion: argoproj.io/v1alpha1
               kind: Workflow
               metadata:
-                name: github-
+                name: github-doubler-test-
               spec:
-                entrypoint: whalesay
-                arguments:
-                  parameters:
-                    - name: pr-title
-                    - name: pr-number
-                    - name: short-sha
+                entrypoint: assert-doubler
                 templates:
-                  - name: whalesay
+                  - name: run-doubler-and-assert
                     inputs:
                       parameters:
-                        - name: pr-title
-                        - name: pr-number
-                        - name: short-sha
-                    container:
-                      image: docker/whalesay:latest
-                      command: [cowsay]
-                      args: ["{{inputs.parameters.pr-title}}"]
+                        - name: input
+                        - name: expected
+                    steps:
+                    - - name: run-doubler
+                        templateRef:
+                          name: doubler
+                          template: double
+                        arguments:
+                          parameters:
+                            - name: input
+                              value: "{{inputs.parameters.input}}"
+                    - - name: assert
+                        template: assert-equal
+                        arguments:
+                          parameters:
+                            - name: input
+                              value: "{{inputs.parameters.input}}"
+                            - name: actual
+                              value: "{{steps.run-doubler.outputs.result}}"
+                            - name: expected
+                              value: "{{inputs.parameters.expected}}"
+
+                  - name: assert-equal
+                    inputs:
+                      parameters:
+                      - name: input
+                      - name: actual
+                      - name: expected
+                    script:
+                      image: python:alpine3.6
+                      command: [python]
+                      source: |
+                        assert {{inputs.parameters.actual}} == {{inputs.parameters.expected}}, f"for {{inputs.parameters.input}}, expected {{inputs.parameters.expected}}, got {{inputs.parameters.actual}}"
+
+                  - name: assert-doubler
+                    steps:
+                    - - name: run-doubler-and-assert
+                        template: run-doubler-and-assert
+                        arguments:
+                          parameters:
+                          - name: input
+                            value: "{{item.input}}"
+                          - name: expected
+                            value: "{{item.expected}}"
+                        withItems:
+                          - { input: '2', expected: '4' }
+                          - { input: '4', expected: '8' }
+                          - { input: '0', expected: '0' }
+
           parameters:
             - src:
                 dependencyName: test-dep
@@ -66,7 +103,6 @@ spec:
                 dependencyName: test-dep
                 dataTemplate: "{{ .Input.body.pull_request.head.sha | substr 0 7 }}"
               dest: spec.arguments.parameters.2.value
-            # Append pull request number and short sha to dynamically assign workflow name <github-21500-2c065a>
             - src:
                 dependencyName: test-dep
                 dataTemplate: "{{ .Input.body.pull_request.number }}-{{ .Input.body.pull_request.head.sha | substr 0 7 }}"
