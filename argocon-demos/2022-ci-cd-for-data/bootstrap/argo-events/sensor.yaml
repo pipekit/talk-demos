@@ -37,6 +37,21 @@ spec:
                 name: github-doubler-test-
               spec:
                 entrypoint: assert-doubler
+                arguments:
+                  parameters:
+                    - name: pr-title
+                    - name: pr-number
+                    - name: short-sha
+
+                volumeClaimTemplates:
+                - metadata:
+                    name: code
+                  spec:
+                    accessModes: [ "ReadWriteOnce" ]
+                    resources:
+                      requests:
+                        storage: 1Gi
+
                 templates:
                   - name: run-doubler-and-assert
                     inputs:
@@ -63,6 +78,36 @@ spec:
                             - name: expected
                               value: "{{inputs.parameters.expected}}"
 
+                  - name: get-template
+                    container:
+                      image: alpine
+                      command: [sh, -c]
+                      args: [
+                        'ls;
+                        cd /workdir/talk-demos/argocon-demos/2022-ci-cd-for-data/bootstrap/argo-workflows;
+                        ls;
+                        cat doubler-template.yaml;'
+                      ]
+                      volumeMounts:
+                      - name: code
+                        mountPath: /workdir
+
+                  - name: apply-template
+                    inputs:
+                      parameters:
+                        - name: workflowtemplate
+                    resource:
+                      action: apply
+                      manifest: "{{inputs.parameters.workflowtemplate}}"
+
+                  - name: delete-template
+                    inputs:
+                      parameters:
+                        - name: workflowtemplate
+                    resource:
+                      action: delete
+                      manifest: "{{inputs.parameters.workflowtemplate}}"
+
                   - name: assert-equal
                     inputs:
                       parameters:
@@ -77,6 +122,24 @@ spec:
 
                   - name: assert-doubler
                     steps:
+                    - - name: checkout-pr
+                        templateRef:
+                          name: git-checkout-pr
+                          template: git-checkout-pr
+                        arguments:
+                          parameters:
+                            - name: app_repo
+                              value: talk-demos
+                            - name: git_branch
+                              value: d83bf6c
+                    - - name: get-template
+                        template: get-template
+                    - - name: apply-template
+                        template: apply-template
+                        arguments:
+                          parameters:
+                            - name: workflowtemplate
+                              value: "{{steps.get-template.outputs.result}}"
                     - - name: run-doubler-and-assert
                         template: run-doubler-and-assert
                         arguments:
@@ -89,6 +152,12 @@ spec:
                           - { input: '2', expected: '4' }
                           - { input: '4', expected: '8' }
                           - { input: '0', expected: '0' }
+                    - - name: delete-template
+                        template: delete-template
+                        arguments:
+                          parameters:
+                            - name: workflowtemplate
+                              value: "{{steps.get-template.outputs.result}}"
 
           parameters:
             - src:
