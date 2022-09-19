@@ -86,41 +86,16 @@ spec:
                         apiVersion: argoproj.io/v1alpha1
                         kind: Workflow
                         metadata:
-                          generateName: run-doubler
+                          generateName: assert-doubler-
                         spec:
-                          entrypoint: run-doubler-and-assert
-                          templates:
-                            - name: run-doubler-and-assert
-                              steps:
-                              - - name: run-doubler
-                                  templateRef:
-                                    name: doubler
-                                    template: double
-                                  arguments:
-                                    parameters:
-                                      - name: input
-                                        value: "{{inputs.parameters.input}}"
-                              - - name: assert
-                                  template: assert-equal
-                                  arguments:
-                                    parameters:
-                                      - name: input
-                                        value: "{{inputs.parameters.input}}"
-                                      - name: actual
-                                        value: "{{steps.run-doubler.outputs.result}}"
-                                      - name: expected
-                                        value: "{{inputs.parameters.expected}}"
-                            - name: assert-equal
-                              inputs:
-                                parameters:
-                                - name: input
-                                - name: actual
-                                - name: expected
-                              script:
-                                image: python:alpine3.6
-                                command: [python]
-                                source: |
-                                  assert {{inputs.parameters.actual}} == {{inputs.parameters.expected}}, f"for {{inputs.parameters.input}}, expected {{inputs.parameters.expected}}, got {{inputs.parameters.actual}}"
+                          arguments:
+                            parameters:
+                              - name: input
+                                value: "{{inputs.parameters.input}}"
+                              - name: expected
+                                value: "{{inputs.parameters.expected}}"
+                          workflowTemplateRef:
+                            name: assert-doubler
 
                   - name: assert-doubler
                     steps:
@@ -174,4 +149,4 @@ spec:
               dest: metadata.name
               operation: append
       retryStrategy:
-        steps: 3
+        uteps: 3

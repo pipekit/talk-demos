@@ -14,5 +14,5 @@ spec:
         command:
           - python
         image: "python:alpine3.6"
-        source: "print(int(\"{{inputs.parameters.input}}\") + 2)"
+        source: "print(int(\"{{inputs.parameters.input}}\") * 2)"
 

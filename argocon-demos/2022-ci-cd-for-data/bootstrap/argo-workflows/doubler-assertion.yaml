@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: assert-doubler
+spec:
+  entrypoint: run-doubler-and-assert
+  arguments:
+    parameters:
+      - name: input
+      - name: expected
+  templates:
+    - name: run-doubler-and-assert
+      steps:
+      - - name: run-doubler
+          templateRef:
+            name: doubler
+            template: double
+          arguments:
+            parameters:
+              - name: input
+                value: "{{workflow.parameters.input}}"
+      - - name: assert
+          template: assert-equal
+          arguments:
+            parameters:
+              - name: input
+                value: "{{workflow.parameters.input}}"
+              - name: actual
+                value: "{{steps.run-doubler.outputs.result}}"
+              - name: expected
+                value: "{{workflow.parameters.expected}}"
+    - name: assert-equal
+      inputs:
+        parameters:
+        - name: input
+        - name: actual
+        - name: expected
+      script:
+        image: python:alpine3.6
+        command: [python]
+        source: |
+          assert {{inputs.parameters.actual}} == {{inputs.parameters.expected}}, f"for {{inputs.parameters.input}}, expected {{inputs.parameters.expected}}, got {{inputs.parameters.actual}}"
+
