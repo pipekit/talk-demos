@@ -14,12 +14,14 @@ spin-up:
 	kubectl apply -f bootstrap/argo-events/github-access-secret.yaml
 	kubectl apply -f bootstrap/argo-events/event-source.yaml
 	kubectl apply -f bootstrap/argo-workflows/doubler-template.yaml
+	kubectl apply -f bootstrap/argo-workflows/doubler-assertion.yaml
 	kubectl apply -f bootstrap/argo-events/sensor.yaml
 
 .PHONY: tear-down
 tear-down:
 	@echo "============= Tearing-down CI example ============="
 	kubectl delete -f bootstrap/argo-events/sensor.yaml
+	kubectl delete -f bootstrap/argo-workflows/doubler-assertion.yaml
 	kubectl delete -f bootstrap/argo-workflows/doubler-template.yaml
 	kubectl delete -f bootstrap/argo-events/event-source.yaml
 	kubectl delete -f bootstrap/argo-events/github-access-secret.yaml
