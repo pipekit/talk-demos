@@ -53,31 +53,6 @@ spec:
                         storage: 1Gi
 
                 templates:
-                  - name: run-doubler-and-assert
-                    inputs:
-                      parameters:
-                        - name: input
-                        - name: expected
-                    steps:
-                    - - name: run-doubler
-                        templateRef:
-                          name: doubler
-                          template: double
-                        arguments:
-                          parameters:
-                            - name: input
-                              value: "{{inputs.parameters.input}}"
-                    - - name: assert
-                        template: assert-equal
-                        arguments:
-                          parameters:
-                            - name: input
-                              value: "{{inputs.parameters.input}}"
-                            - name: actual
-                              value: "{{steps.run-doubler.outputs.result}}"
-                            - name: expected
-                              value: "{{inputs.parameters.expected}}"
-
                   - name: get-template
                     container:
                       image: alpine
@@ -98,17 +73,54 @@ spec:
                       action: apply
                       manifest: "{{inputs.parameters.workflowtemplate}}"
 
-                  - name: assert-equal
+                  - name: run-doubler-workflow
                     inputs:
                       parameters:
-                      - name: input
-                      - name: actual
-                      - name: expected
-                    script:
-                      image: python:alpine3.6
-                      command: [python]
-                      source: |
-                        assert {{inputs.parameters.actual}} == {{inputs.parameters.expected}}, f"for {{inputs.parameters.input}}, expected {{inputs.parameters.expected}}, got {{inputs.parameters.actual}}"
+                        - name: input
+                        - name: expected
+                    resource:
+                      action: create
+                      successCondition: status.phase == Succeeded
+                      failureCondition: status.phase in (Failed, Error)
+                      manifest: |
+                        apiVersion: argoproj.io/v1alpha1
+                        kind: Workflow
+                        metadata:
+                          generateName: run-doubler
+                        spec:
+                          entrypoint: run-doubler-and-assert
+                          templates:
+                            - name: run-doubler-and-assert
+                              steps:
+                              - - name: run-doubler
+                                  templateRef:
+                                    name: doubler
+                                    template: double
+                                  arguments:
+                                    parameters:
+                                      - name: input
+                                        value: "{{inputs.parameters.input}}"
+                              - - name: assert
+                                  template: assert-equal
+                                  arguments:
+                                    parameters:
+                                      - name: input
+                                        value: "{{inputs.parameters.input}}"
+                                      - name: actual
+                                        value: "{{steps.run-doubler.outputs.result}}"
+                                      - name: expected
+                                        value: "{{inputs.parameters.expected}}"
+                            - name: assert-equal
+                              inputs:
+                                parameters:
+                                - name: input
+                                - name: actual
+                                - name: expected
+                              script:
+                                image: python:alpine3.6
+                                command: [python]
+                                source: |
+                                  assert {{inputs.parameters.actual}} == {{inputs.parameters.expected}}, f"for {{inputs.parameters.input}}, expected {{inputs.parameters.expected}}, got {{inputs.parameters.actual}}"
 
                   - name: assert-doubler
                     steps:
@@ -130,8 +142,8 @@ spec:
                           parameters:
                             - name: workflowtemplate
                               value: "{{steps.get-template.outputs.result}}"
-                    - - name: run-doubler-and-assert
-                        template: run-doubler-and-assert
+                    - - name: run-doubler-workflow
+                        template: run-doubler-workflow
                         arguments:
                           parameters:
                           - name: input
