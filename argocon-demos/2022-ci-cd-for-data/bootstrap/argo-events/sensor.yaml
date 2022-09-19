@@ -83,9 +83,7 @@ spec:
                       image: alpine
                       command: [sh, -c]
                       args: [
-                        'ls;
-                        cd /workdir/talk-demos/argocon-demos/2022-ci-cd-for-data/bootstrap/argo-workflows;
-                        ls;
+                        'cd /workdir/talk-demos/argocon-demos/2022-ci-cd-for-data/bootstrap/argo-workflows;
                         cat doubler-template.yaml;'
                       ]
                       volumeMounts:
@@ -131,7 +129,7 @@ spec:
                             - name: app_repo
                               value: talk-demos
                             - name: git_branch
-                              value: e060cca
+                              value: 53bfbea
                     - - name: get-template
                         template: get-template
                     - - name: apply-template
