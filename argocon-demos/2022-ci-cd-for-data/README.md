@@ -8,3 +8,5 @@ following:
 
 To do so, the sensor relies on the Workflow of Workflows pattern because
 WorkflowTemplates used by a Workflow are added at compile time.
+
+Sample text to trigger a PR
