@@ -28,6 +28,9 @@ helm install spark spark-operator/spark-operator --namespace spark-operator --cr
 kubectl -n argo apply -f infra/argo-rbac.yaml
 ```
 
+## Demo video
+[View a recording of this demo on Google Drive here.](https://drive.google.com/file/d/1HH8oIf1keWXlmutlzcocC0_T-G0l5OJt/view?usp=sharing)
+
 ## How to build and run examples
 
 ### Scala example
