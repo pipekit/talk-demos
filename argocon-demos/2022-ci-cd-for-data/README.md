@@ -1,12 +1,13 @@
-# CI/CD for Data Pipelines using Argo Workflows
+# CI/CD for Data Pipelines with Argo Workflows
 
 ## Goal of this repository
-- Showcase how Spark Jobs can be orchestrated with Argo Workflows
-- Provide a how-to steps to run all examples on local.  
+- Provide an overview of CI/CD for data pipelines
+- Highlight problems solved by CI/CD for data pipelines
+- Showcase a development setup of CI/CD for data pipelines using Argo Workflows  
 
 ## The talk
 
-[![Processing petabytes in Python with Argo Workflows & Dask](https://img.youtube.com/vi/f5lPS9WKy_8/0.jpg)](https://www.youtube.com/watch?v=f5lPS9WKy_8)
+[![CI/CD for Data Pipelines with Argo Workflows](https://i3.ytimg.com/vi/729GwVMgeXw/hqdefault.jpg)](https://www.youtube.com/watch?v=729GwVMgeXw)
 
 ## Requirements
 - Argo Workflows
