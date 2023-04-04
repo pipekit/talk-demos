@@ -1,6 +1,6 @@
 [![Pipekit Logo](assets/images/pipekit-logo.png)](https://pipekit.io)
 
-This repo contains demos from ArgoCon and OSS.
+This repo contains demos from ArgoCon and Open Source Summit.
 
 ## ArgoCon 2023
 * [Configuring Volumes for Parallel Workflow Reads and Writes](argocon-demos/2023-configuring-volumes-for-parallel-workflow-reads-and-writes/)
@@ -8,7 +8,7 @@ This repo contains demos from ArgoCon and OSS.
 ## ArgoCon 2022
 * [CI/CD for Data Pipelines with Argo Workflows](argocon-demos/2022-ci-cd-for-data-pipelines/)
 
-## OSS 2022
+## Open Source Summit 2022
 * [Automating Cloud-native Spark Jobs with Argo Workflows](oss-2022/)
 
 ## ArgoCon 2021
