@@ -1,0 +1,81 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: large-file-s3-
+  annotations:
+    workflows.argoproj.io/description: >-
+      Creates a large (10G) file and stores it in the artifact repository.
+      The next 3 steps pull that file in parallel, check that it is present and then create a new 10GB file.
+
+      This process takes approximately 7 minutes to complete when using the S3 artifact repository.
+    workflows.argoproj.io/maintainer: 'Pipekit Inc'
+    workflows.argoproj.io/maintainer_url: 'https://pipekit.io'
+spec:
+  entrypoint: main
+  templates:
+    - name: main
+      dag:
+        tasks:
+          - name: setup
+            template: setup
+          - name: parallel-run
+            template: parallel-run
+            arguments:
+              artifacts:
+                - name: large_file
+                  from: "{{tasks.setup.outputs.artifacts.large_file}}"
+              parameters:
+                - name: index
+                  value: "{{item}}"
+            withItems:
+              - 1
+              - 2
+              - 3
+            depends: setup
+
+    - name: setup
+      container:
+        image: alpine
+        command:
+          - sh
+          - -c
+          - |
+            cd /tmp
+            dd if=/dev/zero of=LARGE_FILE bs=1 count=0 seek=10G
+        resources:
+          requests:
+            memory: 1Gi
+            cpu: 1
+      outputs:
+        artifacts:
+          - name: large_file
+            path: /tmp/LARGE_FILE
+
+    - name: parallel-run
+      inputs:
+        artifacts:
+          - name: large_file
+            path: /tmp/LARGE_FILE
+        parameters:
+          - name: index
+      container:
+        image: alpine
+        command:
+          - sh
+          - -c
+          - |
+            echo "I am number {{inputs.parameters.index}}"
+            cd /tmp
+            ls -lah
+            du -h LARGE_FILE
+            echo "Making new file: NEW_LARGE_FILE{{inputs.parameters.index}}"
+            dd if=/dev/zero of=NEW_LARGE_FILE{{inputs.parameters.index}} bs=1 count=0 seek=10G
+            echo "File created"
+        resources:
+          requests:
+            memory: 1Gi
+            cpu: 1
+      outputs:
+        artifacts:
+          - name: NEW_LARGE_FILE{{inputs.parameters.index}}
+            path: /tmp/NEW_LARGE_FILE{{inputs.parameters.index}}
