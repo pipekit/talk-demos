@@ -1,4 +1,7 @@
 # Processing petabytes in Python with Argo Workflows & Dask
+
+[![Pipekit Logo](https://raw.githubusercontent.com/pipekit/talk-demos/main/assets/images/pipekit-logo.png)](https://pipekit.io)
+
 ## Goal of this repository
 
 * Showcase the combination of Dask and Argo Workflows to dynamically scale a compuational workload
@@ -23,3 +26,9 @@ This project includes a Dask data pipeline which showcases a simple set-up of th
     - Returns that city's name
 * Counts the observations where each city had the fastest windspeed
 * Reports the city which is most often the windiest
+
+---
+
+## About Pipekit
+
+[Pipekit](pipekit.io) allows you to manage your workflows at scale. The control plane configures Argo Workflows for you in your infrastructure, enabling you to optimize multi-cluster workloads while reducing your cloud spend.  The team at Pipekit is also happy to support you through your Argo Workflows journey via commercial support.

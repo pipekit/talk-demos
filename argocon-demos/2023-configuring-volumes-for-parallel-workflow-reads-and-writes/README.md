@@ -1,6 +1,6 @@
 # Configuring Volumes for Parallel Workflow Reads and Writes
 
-[![Pipekit Logo](assets/pipekit-logo.png)](https://pipekit.io)
+[![Pipekit Logo](https://raw.githubusercontent.com/pipekit/talk-demos/main/assets/images/pipekit-logo.png)](https://pipekit.io)
 
 The tests used in the Argocon [Lightning Talk: Configuring Volumes for Parallel Workflow Reads and Writes - Lukonde Mwila, Amazon Web Services & Tim Collins, Pipekit
 ](https://sched.co/1Jo9v)

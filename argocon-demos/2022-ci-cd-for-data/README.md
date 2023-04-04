@@ -1,5 +1,7 @@
 # CI/CD for Data Pipelines with Argo Workflows
 
+[![Pipekit Logo](https://raw.githubusercontent.com/pipekit/talk-demos/main/assets/images/pipekit-logo.png)](https://pipekit.io)
+
 ## Goal of this repository
 - Provide an overview of CI/CD for data pipelines
 - Highlight problems solved by CI/CD for data pipelines
@@ -27,3 +29,9 @@ WorkflowTemplates used by a Workflow are added at compile time.
 
 ## Demo video
 [View a recording of this demo on Google Drive here.]()
+
+---
+
+## About Pipekit
+
+[Pipekit](pipekit.io) allows you to manage your workflows at scale. The control plane configures Argo Workflows for you in your infrastructure, enabling you to optimize multi-cluster workloads while reducing your cloud spend.  The team at Pipekit is also happy to support you through your Argo Workflows journey via commercial support.
