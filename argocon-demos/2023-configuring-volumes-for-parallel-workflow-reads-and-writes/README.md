@@ -28,6 +28,8 @@ The workflow controller configmap configuration we used is in the [workflows-con
 
 You can run the whole thing locally in a k3d cluster.
 
+This same example also offers the exact same workflow using minio as the artifact repository to pass data between steps. This allows you to compare the setup differences between the two and to decide the best approach for your own use cases.
+
 ## NFS-Server-Provisioner
 [The repo for the nfs-server provisioner](https://github.com/kubernetes-sigs/nfs-ganesha-server-and-external-provisioner).
 
