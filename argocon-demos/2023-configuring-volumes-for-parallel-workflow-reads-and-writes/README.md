@@ -9,6 +9,9 @@ NFS-server-provisioner     |  S3
 :-------------------------:|:-------------------------:
 ![](assets/nfs-test.png)   |  ![](assets/s3-test.png)
 
+## Talk Slides
+The slide deck for this talk can be found [here](assets/slide-deck.pdf).
+
 ## Tests
 The tests require:
 
