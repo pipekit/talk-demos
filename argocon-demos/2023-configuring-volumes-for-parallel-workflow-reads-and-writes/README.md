@@ -9,7 +9,9 @@ NFS-server-provisioner     |  S3
 :-------------------------:|:-------------------------:
 ![](assets/nfs-test.png)   |  ![](assets/s3-test.png)
 
-## Talk Slides
+## The talk
+The talk [can be found here](https://www.youtube.com/watch?v=QZI-LXJGWYI).
+
 The slide deck for this talk can be found [here](assets/slide-deck.pdf).
 
 ## Tests

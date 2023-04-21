@@ -2,6 +2,8 @@
 
 [![Pipekit Logo](https://raw.githubusercontent.com/pipekit/talk-demos/main/assets/images/pipekit-logo.png)](https://pipekit.io)
 
+## The talk
+The talk [can be found here](https://youtu.be/ucnOQuNkIbE).
 
 ## Workflow configuration & setup
 The workflow controller configmap configuration we used is in this repo. However, more information on setting up an S3 artifact repository with Argo Workflows can be found in the [Argo Workflows Documentation](https://argoproj.github.io/argo-workflows/configure-artifact-repository/#configuring-aws-s3)
