@@ -2,6 +2,8 @@
 
 [![Pipekit Logo](https://raw.githubusercontent.com/pipekit/talk-demos/main/assets/images/pipekit-logo.png)](https://pipekit.io)
 
+[The talk can be found here](https://www.youtube.com/watch?v=QV3YKUOiKo0).
+
 ## Goal of this repository
 - Showcase how Spark Jobs can be orchestrated with Argo Workflows
 - Provide a how-to steps to run all examples on local.  
