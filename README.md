@@ -7,7 +7,7 @@ This repo contains demos from ArgoCon and Open Source Summit.
 * [Managing Artifacts at Scale for CI and Data Processing](argocon-demos/2023-artifact-management-at-scale)
 
 ## ArgoCon 2022
-* [CI/CD for Data Pipelines with Argo Workflows](argocon-demos/2022-ci-cd-for-data-pipelines/)
+* [CI/CD for Data Pipelines with Argo Workflows](argocon-demos/2022-ci-cd-for-data)
 
 ## Open Source Summit 2022
 * [Automating Cloud-native Spark Jobs with Argo Workflows](oss-2022/)
