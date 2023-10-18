@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: hello-test-
+  namespace: argo
+spec:
+  entrypoint: test
+  podGC:
+    strategy: OnPodSuccess
+  ttlStrategy:
+    secondsAfterCompletion: 20
+  templates:
+  - name: test
+    dag:
+      tasks:
+      - name: test
+        template: sleep
+        withSequence:
+          count: 400
+  - name: sleep
+    container:
+      image: alpine
+      command:
+        - sh
+        - -c
+        - |
+          sleep $((120 + RANDOM % 10));
+          echo "Hello Argocon!"
+    resources:
+      requests:
+        memory: 100Mi
+        cpu: 100m

@@ -10,6 +10,11 @@
 ## Example Workflow
 An example workflow that demonstrates how you could use Argo Workflows and Argo CD to deploy and configure vClusters. It can be found [here](create-and-setup-vcluster-workflow/create.yaml).
 
+## Demonstrating vCluster at scale
+This is a very unscientific demonstration of how you could use vCluster at scale to eek out more performance from your existing cluster. It can be found [here](demonstrating-argo-workflows-and-vcluster-at-scale/README.md).
+
+By running many Argo Workflows instances inside vClusters, you will reduce the number of API calls made back to the kubernetes API on the host cluster. This will reduce API throttling and should allow you to run more workflows/pods concurrently than you would if you were just running on the host cluster.
+
 ## Argo Workflows Support
 
 For more information about Argo Workflows, please see the following resources:
