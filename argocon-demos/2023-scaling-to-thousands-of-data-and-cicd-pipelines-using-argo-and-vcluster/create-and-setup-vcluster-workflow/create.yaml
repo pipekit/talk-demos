@@ -1,0 +1,223 @@
+
+
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: pipekit-create-vc
+  namespace: argo
+  annotations:
+    workflows.argoproj.io/description: >-
+      1. Deploys an Argo CD application pointing to a vCluster Helm Chart deployment in git.
+      2. Adds the vCluster as a cluster in Argo CD.
+      3. Argo CD Application Set will then install further appliacations into the vCluster automatically.
+
+      notes:
+      - Vcluster helm chart: https://github.com/loft-sh/vcluster/tree/main/charts
+      - We use Kube Janitor to handle the TTL of things as a fallback: https://codeberg.org/hjacobs/kube-janitor. This is referenced in the `lifetime` parameters.
+
+      This workflow will not work out of the box. You need to use it as inspiration.
+    workflows.argoproj.io/maintainer: 'Pipekit Inc'
+    workflows.argoproj.io/maintainer_url: 'https://pipekit.io'
+spec:
+  metrics:
+    prometheus:
+      - name: exec_duration_gauge
+        labels:
+          - key: name
+            value: "create-vcluster"
+          - key: status
+            value: "{{status}}"
+        help: "Duration gauge by name"
+        gauge:
+          value: "{{workflow.duration}}"
+          realtime: false
+      - name: result_counter
+        help: "Count of step execution by result status"
+        labels:
+          - key: status
+            value: Failed
+          - key: name
+            value: "create-vcluster"
+        when: "{{status}} == Failed"
+        counter:
+          value: "1"
+      - name: result_counter
+        help: "Count of step execution by result status"
+        labels:
+          - key: status
+            value: Succeeded
+          - key: name
+            value: "create-vcluster"
+        when: "{{status}} == Succeeded"
+        counter:
+          value: "1"
+      - name: last_run_gauge
+        labels:
+          - key: run_name
+            value: "create-vcluster"
+        help: "0 if last run successful, 1 if last run failed"
+        when: "{{status}} == Succeeded"
+        gauge:
+          value: "0"
+          realtime: false
+      - name: last_run_gauge
+        labels:
+          - key: run_name
+            value: "create-vcluster"
+        help: "0 if last run successful, 1 if last run failed"
+        when: "{{status}} == Failed"
+        gauge:
+          value: "1"
+          realtime: false
+  entrypoint: workflow
+  serviceAccountName: argo
+  arguments:
+    parameters:
+      - name: vc-identifier
+        value: ""
+      - name: clusterID
+        value: ""
+      - name: secretAccessKey
+        value: ""
+      - name: argocd-git-repo
+        value: "https://github.com/pipekit/talk-demos.git"
+  templates:
+    - name: workflow
+      dag:
+        tasks:
+          - name: create-vcluster
+            template: create-vcluster
+            arguments:
+              parameters:
+                - name: lifetime
+                  value: "32d"
+          - name: vcluster-config
+            template: vcluster-config
+            arguments:
+              parameters:
+                - name: lifetime
+                  value: "32d"
+
+    - name: create-vcluster
+      inputs:
+        parameters:
+          - name: lifetime
+      nodeSelector:
+        nodegroup: arm
+      resource:
+        action: create
+        successCondition: status.health.status == Healthy
+        failureCondition: status.health.status == Degraded
+        manifest: |
+          apiVersion: argoproj.io/v1alpha1
+          kind: Application
+          metadata:
+            name: vc-{{workflow.parameters.vc-identifier}}
+            namespace: argocd
+            finalizers:
+              - resources-finalizer.argocd.argoproj.io
+            annotations:
+              janitor/ttl: "{{inputs.parameters.lifetime}}"
+          spec:
+            destination:
+              namespace: {{workflow.parameters.vc-identifier}}
+              server: 'https://kubernetes.default.svc'
+            source:
+              path: vcluster
+              repoURL: '{{workflow.parameters.argocd-git-repo}}'
+              targetRevision: HEAD
+              plugin:
+                name: lovely-vault
+            project: vclusters
+            syncPolicy:
+              automated:
+                prune: true
+                selfHeal: true
+              syncOptions:
+                - PrunePropagationPolicy=background
+                - CreateNamespace=true
+
+    - name: vcluster-config
+      inputs:
+        parameters:
+          - name: lifetime
+      nodeSelector:
+        nodegroup: arm
+      metadata:
+        annotations:
+          vault.hashicorp.com/agent-inject: "true"
+          vault.hashicorp.com/role: "argo"
+          vault.hashicorp.com/auth-path: "auth/vcluster"
+          vault.hashicorp.com/agent-pre-populate-only: "true"
+          vault.hashicorp.com/agent-inject-secret-argocd-password: "secrets/data/argocd/admin"
+          vault.hashicorp.com/agent-inject-template-argocd-password: |
+            {{ with secret "secrets/data/argocd/admin" -}}
+                export ARGOCD_PASSWORD="{{ .Data.data.password }}"
+            {{- end }}
+      container:
+        image: dtzar/helm-kubectl
+        imagePullPolicy: Always
+        command:
+          - /bin/bash
+          - -c
+          - |
+            # We recommend you use a custom image for speed and security. This example uses a public image and then installs
+            # dependencies into it. This is slow.
+
+            # Install argocd CLI into
+            export VERSION_ARGOCD=v2.8.4
+            curl -sSL -o argocd-linux-arm64 https://github.com/argoproj/argo-cd/releases/download/$VERSION_ARGOCD/argocd-linux-arm64 && \
+              install -m 555 argocd-linux-arm64 /usr/local/bin/argocd && \
+              rm argocd-linux-arm64
+
+            # Log in to Argo CD for later using the password from Vault
+            . /vault/secrets/argocd-password
+            argocd login argocd-server.argocd.svc.cluster.local --insecure --username vcluster-admin --grpc-web --password $ARGOCD_PASSWORD
+
+            # Wait for Argo CD to create the namespace, then immediately annotate and label it for future use.
+            while ! kubectl get namespace {{workflow.parameters.vc-identifier}}; do echo "Waiting for vcluster namespace..."; sleep 1; done
+            kubectl annotate namespace {{workflow.parameters.vc-identifier}} janitor/ttl={{inputs.parameters.lifetime}}
+            kubectl label namespace {{workflow.parameters.vc-identifier}} vc-identifier={{workflow.parameters.vc-identifier}}
+
+            # Wait for vcluster to be ready, then wait for the kubeconfig secret.
+            kubectl -n {{workflow.parameters.vc-identifier}} rollout status statefulset/vc-{{workflow.parameters.vc-identifier}}
+            while ! kubectl -n {{workflow.parameters.vc-identifier}} get secret vc-vc-{{workflow.parameters.vc-identifier}}; do echo "Waiting for kubeconfig secret..."; sleep 1; done
+
+            # Grab and tweak the vcluster kubectl secret from the host cluster so that we can inject the into Argo CD later.
+            kubectl -n {{workflow.parameters.vc-identifier}} get secret vc-vc-{{workflow.parameters.vc-identifier}} --template={{.data.config}}| base64 -d > /tmp/config-init || exit 1
+            sed -E "s/localhost:8443/vc-{{workflow.parameters.vc-identifier}}.{{workflow.parameters.vc-identifier}}:443/g" /tmp/config-init > /tmp/config
+
+            # Switch the kubectl context to the vcluster.
+            export KUBECONFIG=/tmp/config
+
+            # Prevent workflow from accidentally deploying to the wrong cluster.
+            # Also test that the vcluster is ready before adding to Argo CD and interacting with it.
+            currentContext=$(kubectl config current-context)
+            if [ "$currentContext" == "my-vcluster" ]; then
+                while ! kubectl get namespaces; do echo "Waiting to connect to vcluster..."; sleep 1; done
+                echo "Starting deployment to cluster..."
+            else
+                echo "The kubectl context is not what was expected. Exiting for safety."
+                exit 1
+            fi
+
+            # Add vcluster to Argo CD
+            argocd cluster add my-vcluster --name {{workflow.parameters.vc-identifier}} \
+              --kubeconfig /tmp/config \
+              --label pipekit/appset-vcluster=true \
+              --label vc-identifier={{workflow.parameters.vc-identifier}} \
+              --annotation janitor/ttl={{inputs.parameters.lifetime}} \
+              --yes
+
+            # Create namespaces inside the vcluster. Argo CD will create the pipekit namespace, but we might get there first and we need it for the pipekit agent secret.
+            kubectl create namespace argo || true
+            kubectl create namespace pipekit || true
+
+            # Create the pipekit agent secret.
+            kubectl -n pipekit create secret generic pipekit-agent \
+              --from-literal=PIPEKIT_CLUSTER_ID='{{workflow.parameters.clusterID}}' \
+              --from-literal=PIPEKIT_SECRET_ACCESS_KEY='{{workflow.parameters.secretAccessKey}}'
+        resources:
+          requests:
+            memory: 200Mi
+            cpu: 500m
