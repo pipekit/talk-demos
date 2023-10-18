@@ -5,7 +5,7 @@
 [Leveraging Argo WorkflowTemplates Within a Data Platform - J.P. Zivalich, Pipekit & Yao Lin, Bloomberg](https://sched.co/1Jo9d)
 
 ## The talk
-The talk [can be found here](https://youtu.be/g8TCgnrM648?feature=shared).
+The talk [can be found here](https://youtu.be/g8TCgnrM648).
 
 The slide deck for this talk can be found [here](assets/slide-deck.pdf).
 
