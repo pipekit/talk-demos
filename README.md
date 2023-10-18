@@ -5,6 +5,7 @@ This repo contains demos from ArgoCon and Open Source Summit.
 ## ArgoCon 2023
 * [Configuring Volumes for Parallel Workflow Reads and Writes](argocon-demos/2023-configuring-volumes-for-parallel-workflow-reads-and-writes/)
 * [Managing Artifacts at Scale for CI and Data Processing](argocon-demos/2023-artifact-management-at-scale)
+* [Leveraging Argo WorkflowTemplates Within a Data Platform](argocon-demos/2023-leveraging-argo-workflowtemplates-within-a-data-platform)
 
 ## ArgoCon 2022
 * [CI/CD for Data Pipelines with Argo Workflows](argocon-demos/2022-ci-cd-for-data)
