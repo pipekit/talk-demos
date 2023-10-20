@@ -144,14 +144,15 @@ spec:
       nodeSelector:
         nodegroup: arm
       metadata:
+        ## We use Hasicorp Vault Agent Injector for secrets manager
         annotations:
           vault.hashicorp.com/agent-inject: "true"
           vault.hashicorp.com/role: "argo"
-          vault.hashicorp.com/auth-path: "auth/vcluster"
+          vault.hashicorp.com/auth-path: "auth/foo"
           vault.hashicorp.com/agent-pre-populate-only: "true"
-          vault.hashicorp.com/agent-inject-secret-argocd-password: "secrets/data/argocd/admin"
+          vault.hashicorp.com/agent-inject-secret-argocd-password: "secrets/data/argocd/argo"
           vault.hashicorp.com/agent-inject-template-argocd-password: |
-            {{ with secret "secrets/data/argocd/admin" -}}
+            {{ with secret "secrets/data/argocd/argo" -}}
                 export ARGOCD_PASSWORD="{{ .Data.data.password }}"
             {{- end }}
       container:
