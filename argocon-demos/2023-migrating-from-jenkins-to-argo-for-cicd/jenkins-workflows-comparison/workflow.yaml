@@ -179,7 +179,11 @@ spec:
           - name: karate-tests
             templateRef:
               name: karate-tests
-              template: main
+              template: karate-tests
+            arguments:
+              parameters:
+                - name: karate_version
+                  value: "{{workflow.parameters.container_tag}}-{{tasks.get-git.outputs.parameters.release-version}}"
             depends: karate-build
           - name: deploy-application-preprod
             templateRef:
