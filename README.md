@@ -2,8 +2,6 @@
 
 This repo contains demos from ArgoCon and Open Source Summit.
 
-
-
 ## ArgoCon 2023
 ## ArgoCon USA 2023
 * [Migrating from Jenkins to Argo for CI/CD](argocon-demos/2023-migrating-from-jenkins-to-argo-for-cicd)
