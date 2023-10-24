@@ -135,8 +135,14 @@ spec:
             depends: git-checkout && get-git
           - name: deploy-application-preview
             templateRef:
-              name: deploy-application-preview
-              template: main
+              name: deploy-application
+              template: deploy-application
+            arguments:
+              parameters:
+                - name: app_type
+                  value: "preview"
+                - name: gh_tag
+                  value: "{{tasks.get-git.outputs.parameters.release-version}}"
             depends: container-build && cpd-certification && code-analysis && run-unit-tests
           - name: update-jira
             templateRef:
@@ -171,8 +177,14 @@ spec:
             depends: karate-build
           - name: deploy-application-preprod
             templateRef:
-              name: deploy-application-preprod
-              template: main
+              name: deploy-application
+              template: deploy-application
+            arguments:
+              parameters:
+                - name: app_type
+                  value: "preprod"
+                - name: gh_tag
+                  value: "{{tasks.get-git.outputs.parameters.release-version}}"
             depends: update-jira
             when: "{{workflow.parameters.is_pr}} == true && {{workflow.parameters.target_branch}} == master"
           - name: scorecard-check
