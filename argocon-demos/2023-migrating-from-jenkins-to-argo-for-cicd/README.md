@@ -2,8 +2,6 @@
 
 [![Pipekit Logo](https://raw.githubusercontent.com/pipekit/talk-demos/main/assets/images/pipekit-logo.png)](https://pipekit.io)
 
-
-
 ## The talk
 <!-- The talk [can be found here](https://youtu.be/g8TCgnrM648).
 
