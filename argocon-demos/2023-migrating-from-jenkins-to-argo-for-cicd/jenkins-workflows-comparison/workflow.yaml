@@ -74,6 +74,8 @@ spec:
       value: ""
     - name: container_tag
       value: ""
+    - name: jira_ticket_number
+      value: ""
  # All the steps in this DAG are referencing external templates.
  # This allows us to re-use those templates in other workflows, and also makes this CI workflow quite tidy.
   templates:
@@ -92,7 +94,7 @@ spec:
             arguments:
               parameters:
               - name: container_tag
-                value: "{{workflow.parameters.container_tag}}"
+                value: "{{workflow.parameters.container_tag}}-{{tasks.get-release-version.outputs.parameters.release-version}}"
               - name: container_image
                 value: "pipekit-internal/foo"
               - name: dockerfile
@@ -141,14 +143,14 @@ spec:
             arguments:
               parameters:
               - name: container_tag
-                value: "{{workflow.parameters.container_tag}}"
+                value: "{{workflow.parameters.container_tag}}-{{tasks.get-release-version.outputs.parameters.release-version}}"
               - name: container_image
                 value: "pipekit-internal/karate"
               - name: dockerfile
                 value: "karate-tests/Dockerfile"
               - name: path
                 value: "karate-tests/"
-            depends: update-jira-pr
+            depends: update-jira-pr && get-release-version
           - name: karate-tests
             templateRef:
               name: karate-tests

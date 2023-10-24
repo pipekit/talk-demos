@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: get-release-version
+  annotations:
+    workflows.argoproj.io/description: >-
+      Gets the latest release version from a git repository.
+    workflows.argoproj.io/maintainer: 'Pipekit Inc'
+    workflows.argoproj.io/maintainer_url: 'https://pipekit.io'
+    workflows.argoproj.io/version: '>= 3.4.0'
+spec:
+  entrypoint: main
+  templates:
+  - name: main
+    dag:
+      tasks:
+        - name: get-release-version
+          template: get-release-version
+
+  - name: get-release-version
+    container:
+      image: alpine
+      command:
+        - sh
+        - -c
+        - |
+          apk --update add curl jq
+          curl https://api.github.com/repos/pipekit/{{workflow.parameters.app_repo}}/releases/latest | jq -r '.tag_name' > /tmp/release-version
+      resources:
+        requests:
+          memory: 50Mi
+          cpu: 50m
+      outputs:
+        parameters:
+          - name: release-version
+            valueFrom:
+              path: /tmp/release-version
+    #20 minutes
+    activeDeadlineSeconds: 1200
