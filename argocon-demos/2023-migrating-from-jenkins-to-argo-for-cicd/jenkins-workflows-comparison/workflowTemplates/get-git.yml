@@ -1,0 +1,66 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: get-git
+  annotations:
+    workflows.argoproj.io/description: >-
+      Gets information from Git to use in the Workflow.
+    workflows.argoproj.io/maintainer: 'Pipekit Inc'
+    workflows.argoproj.io/maintainer_url: 'https://pipekit.io'
+    workflows.argoproj.io/version: '>= 3.4.0'
+spec:
+  entrypoint: main
+  templates:
+  - name: main
+    dag:
+      tasks:
+        - name: get-git
+          template: get-git
+
+  - name: get-git
+    container:
+      image: ubuntu
+      env:
+        - name: isPR
+          value: "{{workflow.parameters.is_pr}}"
+      command:
+        - /bin/bash
+        - -c
+        - |
+          apt update && apt install -y curl jq
+          curl https://api.github.com/repos/pipekit/{{workflow.parameters.app_repo}}/releases/latest | jq -r '.tag_name' > /tmp/release-version
+
+          if [ "${isPR}" == "true" ]
+          then
+            curl \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            https://api.github.com/repos/pipekit/{{workflow.parameters.gh_repo}}/pulls \
+            | jq '. | [map(.) | .[] | select(.head.sha|IN(env.GIT_COMMIT))| {number, sha: .head.sha, headref: .head.ref, base: .base.sha, baseref: .base.ref}]' > /tmp/pr
+            cat /tmp/pr | jq -r '.[].number' > /tmp/pr_num
+            cat /tmp/pr | jq -r '.[].sha' > /tmp/sha
+          else
+            echo '[ { "number": "0000", "sha": "0000", "headref": "0000", "base": "0000", "baseref": "0000" } ]' > /tmp/pr
+            echo "master" > /tmp/pr_num
+            echo "0000" > /tmp/sha
+          fi
+      resources:
+        requests:
+          memory: 50Mi
+          cpu: 50m
+      outputs:
+        parameters:
+          - name: release-version
+            valueFrom:
+              path: /tmp/release-version
+          - name: pr
+            valueFrom:
+              path: /tmp/pr
+          - name: pr_num
+            valueFrom:
+              path: /tmp/pr_num
+          - name: sha
+            valueFrom:
+              path: /tmp/sha
+    #20 minutes
+    activeDeadlineSeconds: 1200

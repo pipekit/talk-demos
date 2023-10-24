@@ -62,6 +62,8 @@ spec:
   volumes:
   - name: container-build
     emptyDir: {}
+  - name: sonarscanner
+    emptyDir: {}
   arguments:
     parameters:
     - name: app_repo
@@ -86,15 +88,15 @@ spec:
             templateRef:
               name: git-checkout
               template: main
-          - name: get-release-version
+          - name: get-git
             templateRef:
-              name: get-release-version
+              name: get-git
               template: main
           - name: container-build
             arguments:
               parameters:
               - name: container_tag
-                value: "{{workflow.parameters.container_tag}}-{{tasks.get-release-version.outputs.parameters.release-version}}"
+                value: "{{workflow.parameters.container_tag}}-{{tasks.get-git.outputs.parameters.release-version}}"
               - name: container_image
                 value: "pipekit-internal/foo"
               - name: dockerfile
@@ -104,12 +106,12 @@ spec:
             templateRef:
               name: container-build
               template: main
-            depends: git-checkout && get-release-version
+            depends: git-checkout && get-git
           - name: run-unit-tests
             templateRef:
               name: run-unit-tests
               template: main
-            depends: git-checkout && get-release-version
+            depends: git-checkout && get-git
           - name: cpd-certification
             templateRef:
               name: cpd-certification
@@ -119,7 +121,18 @@ spec:
             templateRef:
               name: code-analysis
               template: main
-            depends: git-checkout && get-release-version
+            arguments:
+              parameters:
+                - name: pr_num
+                  value: "{{item.number}}"
+                - name: target_branch
+                  value: "{{item.baseref}}"
+                - name: git_branch
+                  value: "{{item.headref}}"
+                - name: git_sha
+                  value: "{{item.sha}}"
+            withParam: "{{tasks.get-git.outputs.parameters.pr}}"
+            depends: git-checkout && get-git
           - name: deploy-application-preview
             templateRef:
               name: deploy-application-preview
@@ -143,14 +156,14 @@ spec:
             arguments:
               parameters:
               - name: container_tag
-                value: "{{workflow.parameters.container_tag}}-{{tasks.get-release-version.outputs.parameters.release-version}}"
+                value: "{{workflow.parameters.container_tag}}-{{tasks.get-git.outputs.parameters.release-version}}"
               - name: container_image
                 value: "pipekit-internal/karate"
               - name: dockerfile
                 value: "karate-tests/Dockerfile"
               - name: path
                 value: "karate-tests/"
-            depends: update-jira-pr && get-release-version
+            depends: update-jira-pr && get-git
           - name: karate-tests
             templateRef:
               name: karate-tests

@@ -1,0 +1,81 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: code-analysis
+  annotations:
+    workflows.argoproj.io/description: >-
+      Runs sonaqube analysis on the codebase.
+    workflows.argoproj.io/maintainer: 'Pipekit Inc'
+    workflows.argoproj.io/maintainer_url: 'https://pipekit.io'
+    workflows.argoproj.io/version: '>= 3.4.0'
+spec:
+  entrypoint: main
+  templates:
+  - name: main
+    dag:
+      tasks:
+        - name: code-analysis
+          template: code-analysis
+
+  - name: sonarscanner
+    inputs:
+      parameters:
+        - name: pr_num
+        - name: target_branch
+        - name: git_branch
+        - name: git_sha
+    container:
+      image: sonarsource/sonar-scanner-cli:5
+      env:
+        - name: SONAR_HOST_URL
+          value: https://sonarqube.foo.com
+        - name: SONAR_PROJECT_BASE_DIR
+          value: /sonarscanner/{{workflow.parameters.app_repo}}
+        - name: isPR
+          value: "{{workflow.parameters.is_pr}}"
+      envFrom:
+        - secretRef:
+            name: sonar-config
+      command:
+        - sh
+        - -c
+        - |
+          echo "Retrieving git clone..." && cp -R /workdir/pipekit/{{workflow.parameters.app_repo}} /sonarscanner
+          cd /sonarscanner/{{workflow.parameters.app_repo}}
+
+          if [ "${isPR}" == "true" ]
+          then
+            echo "Running Sonar PR Scan"
+            /usr/bin/entrypoint.sh \
+            {{workflow.parameters.sonar_additional}} \
+            -Dsonar.pullrequest.key={{inputs.parameters.pr_num}} \
+            -Dsonar.pullrequest.base={{inputs.parameters.target_branch}} \
+            -Dsonar.pullrequest.branch={{inputs.parameters.git_branch}} \
+            -Dsonar.scm.revision={{inputs.parameters.git_sha}} \
+            -Dsonar.projectKey={{workflow.parameters.app_repo}} \
+            -Dsonar.sourceEncoding=UTF-8 \
+            -Dsonar.python.version=3 \
+            -Dsonar.sources={{workflow.parameters.sonar_sources}} \
+            -Dsonar.exclusions={{workflow.parameters.sonar_exclusions}}
+          else
+            echo "Running Sonar Branch scan"
+            /usr/bin/entrypoint.sh \
+            {{workflow.parameters.sonar_additional}} \
+            -Dsonar.branch.name=${GIT_COMMIT} \
+            -Dsonar.projectKey={{workflow.parameters.app_repo}} \
+            -Dsonar.sourceEncoding=UTF-8 \
+            -Dsonar.python.version=3 \
+            -Dsonar.sources={{workflow.parameters.sonar_sources}} \
+            -Dsonar.exclusions={{workflow.parameters.sonar_exclusions}}
+          fi
+      volumeMounts:
+        - name: workdir
+          mountPath: /workfir
+        - name: sonarscanner
+          mountPath: /sonarscanner
+      resources:
+        requests:
+          memory: 3Gi
+          cpu: 2
+        limits:
+          ephemeral-storage: 2Gi
