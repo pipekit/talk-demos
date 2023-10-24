@@ -62,8 +62,6 @@ spec:
   volumes:
   - name: container-build
     emptyDir: {}
-# You can set default parameters here if you prefer. If you don't inject them when calling this template, the defaults will come through.
-# We default 'container_tag' to 'stable' here.
   arguments:
     parameters:
     - name: app_repo
@@ -75,12 +73,6 @@ spec:
     - name: is_pr
       value: ""
     - name: container_tag
-      value: "stable"
-    - name: container_image
-      value: ""
-    - name: dockerfile
-      value: ""
-    - name: path
       value: ""
  # All the steps in this DAG are referencing external templates.
  # This allows us to re-use those templates in other workflows, and also makes this CI workflow quite tidy.
@@ -101,10 +93,12 @@ spec:
               parameters:
               - name: container_tag
                 value: "{{workflow.parameters.container_tag}}"
+              - name: container_image
+                value: "pipekit-internal/foo"
               - name: dockerfile
-                value: "{{workflow.parameters.dockerfile}}"
+                value: "Dockerfile"
               - name: path
-                value: "{{workflow.parameters.path}}"
+                value: "/"
             templateRef:
               name: container-build
               template: main
@@ -148,10 +142,12 @@ spec:
               parameters:
               - name: container_tag
                 value: "{{workflow.parameters.container_tag}}"
+              - name: container_image
+                value: "pipekit-internal/karate"
               - name: dockerfile
-                value: "{{workflow.parameters.dockerfile}}"
+                value: "karate-tests/Dockerfile"
               - name: path
-                value: "{{workflow.parameters.path}}"
+                value: "karate-tests/"
             depends: update-jira-pr
           - name: karate-tests
             templateRef:
@@ -174,4 +170,3 @@ spec:
               name: update-jira-master
               template: main
             depends: scorecard-check
-

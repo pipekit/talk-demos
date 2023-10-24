@@ -10,9 +10,9 @@
 The slide deck for this talk can be found [here](assets/slide-deck.pdf). -->
 
 ## Comparing Jenkins with Argo Workflows
+A comparison of a Jenkinsfile and an Argo Workflow demonstrating how the two relate.
 
-
-
+Neither is intended to be a working example.
 ---
 
 ## About Pipekit
