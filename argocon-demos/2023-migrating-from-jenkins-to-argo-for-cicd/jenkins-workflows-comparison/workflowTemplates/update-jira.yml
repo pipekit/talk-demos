@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: update-jira
+  annotations:
+    workflows.argoproj.io/description: >-
+      Updates Jira using the Jira API
+    workflows.argoproj.io/maintainer: 'Pipekit Inc'
+    workflows.argoproj.io/maintainer_url: 'https://pipekit.io'
+    workflows.argoproj.io/version: '>= 3.4.0'
+spec:
+  entrypoint: main
+  templates:
+  - name: main
+    dag:
+      tasks:
+        - name: update-jira
+          template: update-jira
+
+  - name: update-jira
+    inputs:
+      parameters:
+        - name: jira_ticket_number
+        - name: message
+    container:
+      image: ubuntu
+      envFrom:
+        - secretRef:
+            name: jira-config
+      command:
+        - /bin/bash
+        - -c
+        - |
+          apt update && apt install -y curl
+          curl -D- -u $jiracreds -X POST --data {"body": "{{inputs.parameters.message}}"} -H "Content-Type: application/json" http://jira.foo.biz/rest/api/2/issue/{{inputs.parameters.jira_ticket_number}}/comment
+      resources:
+        requests:
+          memory: 50Mi
+          cpu: 50m
+    #20 minutes
+    activeDeadlineSeconds: 1200

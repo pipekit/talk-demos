@@ -151,8 +151,14 @@ spec:
             depends: deploy-application
           - name: update-jira-pr
             templateRef:
-              name: update-jira-pr
-              template: main
+              name: update-jira
+              template: update-jira
+            arguments:
+              parameters:
+                - name: jira_ticket_number
+                  value: "{{workflow.parameters.jira_ticket_number}}"
+                - name: message
+                  value: "PR: {{tasks.get-git.outputs.parameters.pr_num}}: {{tasks.get-git.outputs.parameters.release-version}} is now available on the preview environment"
             depends: update-jira
             when: "{{workflow.parameters.is_pr}} == true"
           - name: karate-build
@@ -194,6 +200,12 @@ spec:
             depends: deploy-application-preprod
           - name: update-jira-master
             templateRef:
-              name: update-jira-master
-              template: main
+              name: update-jira
+              template: update-jira
+            arguments:
+              parameters:
+                - name: jira_ticket_number
+                  value: "{{workflow.parameters.jira_ticket_number}}"
+                - name: message
+                  value: "{{tasks.get-git.outputs.parameters.release-version}} is now available on the preprod environment"
             depends: scorecard-check
