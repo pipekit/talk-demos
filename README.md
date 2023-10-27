@@ -4,7 +4,7 @@ This repo contains demos from ArgoCon and Open Source Summit.
 
 ## ArgoCon 2023
 ## ArgoCon USA 2023
-* [Migrating from Jenkins to Argo for CI/CD](argocon-demos/2023-migrating-from-jenkins-to-argo-for-cicd)
+* [Migrating CI/CD from Jenkins to Argo](argocon-demos/2023-migrating-cicd-from-jenkins-to-argo)
 
 ## ArgoCon EU 2023
 * [Configuring Volumes for Parallel Workflow Reads and Writes](argocon-demos/2023-configuring-volumes-for-parallel-workflow-reads-and-writes/)
