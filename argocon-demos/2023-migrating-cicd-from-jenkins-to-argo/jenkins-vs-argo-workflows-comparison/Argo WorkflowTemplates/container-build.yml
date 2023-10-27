@@ -1,0 +1,63 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: container-build
+  annotations:
+    workflows.argoproj.io/description: >-
+      Uses Buildkit to build a container image within Kubernetes.
+    workflows.argoproj.io/maintainer: 'Pipekit Inc'
+    workflows.argoproj.io/maintainer_url: 'https://pipekit.io'
+    workflows.argoproj.io/version: '>= 3.4.0'
+spec:
+  entrypoint: main
+  templates:
+  - name: main
+    dag:
+      tasks:
+        - name: container-build
+          template: container-build
+
+  - name: container-build
+    inputs:
+      parameters:
+        - name: container_tag
+        - name: container_image
+        - name: dockerfile
+        - name: path
+    container:
+      image: moby/buildkit:v0.12.3-rootless
+      command:
+        - sh
+        - -c
+        - |
+          echo "Retrieving git clone..." && cp -R /workdir/{{workflow.parameters.app_repo}} /container-build
+
+          buildctl-daemonless.sh build \
+          --frontend \
+          dockerfile.v0 \
+          --local \
+          context=/container-build/{{workflow.parameters.app_repo}}{{inputs.parameters.path}} \
+          --local \
+          dockerfile=/container-build/{{workflow.parameters.app_repo}}{{inputs.parameters.path}} \
+          --opt filename={{inputs.parameters.dockerfile}} \
+          --output \
+          type=image,name={{inputs.parameters.container_image}}:{{inputs.parameters.container_tag}},push=true
+      env:
+        - name: BUILDKITD_FLAGS
+          value: --oci-worker-no-process-sandbox
+      volumeMounts:
+        - name: container-build
+          mountPath: /container-build
+        - name: workdir
+          mountPath: /workdir
+      securityContext:
+        seccompProfile:
+          type: Unconfined
+        runAsUser: 1000
+        runAsGroup: 1000
+      resources:
+        requests:
+          memory: 1Gi
+          cpu: 1
+    #20 minutes
+    activeDeadlineSeconds: 1200

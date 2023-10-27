@@ -1,0 +1,120 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: deploy-application
+  annotations:
+    workflows.argoproj.io/description: >-
+      Deploys an application using Argo CD/Git
+    workflows.argoproj.io/maintainer: 'Pipekit Inc'
+    workflows.argoproj.io/maintainer_url: 'https://pipekit.io'
+    workflows.argoproj.io/version: '>= 3.4.0'
+spec:
+  entrypoint: main
+  templates:
+  - name: main
+    dag:
+      tasks:
+        - name: deploy-application
+          template: deploy-application
+
+  - name: deploy-application
+    inputs:
+      parameters:
+        - name: app_type
+        - name: gh_tag
+    container:
+      image: ubuntu
+      envFrom:
+        - secretRef:
+            name: git-config
+        - secretRef:
+            name: argocd-config
+      command:
+        - /bin/bash
+        - -c
+        - |
+          apt-get update && DEBIAN_FRONTEND="noninteractive" apt-get install -y \
+          ca-certificates \
+          curl \
+          jq \
+          git
+
+          ARGOCD_URL="https://foo.bar.biz"
+          GH_TAG={{inputs.parameters.gh_tag}}
+
+          # Test argocd connectivity before doing anything
+          argoTest=$(curl --connect-timeout 10 --retry 10 --retry-delay 5 -s ${ARGOCD_URL}/api/v1/applications/pipekit-{{inputs.parameters.app_type}} \
+              -H "Authorization: Bearer $argocd_token" \
+              | jq -r '.status.operationState.startedAt')
+          if [[ -z "$argoTest" ]]; then
+            echo "No valid response from Argo CD. Exiting"
+            exit 1
+          fi
+
+          # Modify versions
+          cd /workdir/manifests/ || exit 1
+          ## Finds any semver and changes it.
+          sed -E "s/v[0-9]+\.[0-9]+\.[0-9]+/${GH_TAG}/g" manifests/pipekit-{{inputs.parameters.app_type}}.yml > tmp_pipekit-{{inputs.parameters.app_type}}.yml
+          mv tmp_pipekit-{{inputs.parameters.app_type}}.yml manifests/pipekit-{{inputs.parameters.app_type}}.yml
+
+          git add -A
+          git commit -m "CI: Release {{inputs.parameters.app_type}}: ${GH_TAG}"
+          git push
+          git_sha=$(git rev-parse HEAD)
+
+          echo "Pause for 3 minutes to allow Argo CD time to start the deployment process..."
+          sleep 200
+          startTime=$(curl --connect-timeout 10 --retry 10 --retry-delay 5 -s ${ARGOCD_URL}/api/v1/applications/pipekit-{{inputs.parameters.app_type}} \
+              -H "Authorization: Bearer $argocd_token" \
+              | jq -r '.status.operationState.startedAt')
+          a=$(date --date="$startTime" +%s)
+          b=$(date +%s)
+          secs=$(( b - a ))
+
+          # We want to be sure that argocd has triggered within the last 20 minutes
+          if (( secs < ( 20 * 60 ) ));
+          then
+              echo "An Argo CD deploy took place within the last 20m - getting deployment status";
+              status=$(curl --connect-timeout 10 --retry 10 --retry-delay 5 -s ${ARGOCD_URL}/api/v1/applications/pipekit-{{inputs.parameters.app_type}} \
+              -H "Authorization: Bearer $argocd_token" \
+              | jq -r '.status.health.status')
+              if [[ "$status" == "Healthy" ]]
+              then
+              echo "Argo CD application status is healthy"
+              exit 0
+              else
+              echo "Status was not 'Healthy' was: $status"
+              x=1
+              while [[ "$status" != "Healthy" && $x -lt 60 ]]; do
+                  sleep 60s
+                  status=$(curl --connect-timeout 10 --retry 10 --retry-delay 5 -s ${ARGOCD_URL}/api/v1/applications/pipekit-{{inputs.parameters.app_type}} \
+                  -H "Authorization: Bearer $argocd_token" \
+                  | jq -r '.status.health.status')
+                  if [[ "$status" == "Healthy" ]]
+                  then
+                  echo "Argo CD application status is healthy"
+                  exit 0
+                  else
+                  x=$(( $x + 1 ))
+                  fi
+              done
+              echo "The Argo CD application was not healthy. Reverting"
+              git revert ${git_sha}
+              git push
+              exit 1
+              fi
+          else
+              echo "An Argo CD deploy last took place more than 20m ago. Something went wrong. Reverting";
+              git revert ${git_sha}
+              git push
+              exit 1
+          fi
+      volumeMounts:
+      - name: "workdir"
+        mountPath: /workdir
+      resources:
+        requests:
+          memory: 50Mi
+          cpu: 50m
+    #20 minutes
+    activeDeadlineSeconds: 1200

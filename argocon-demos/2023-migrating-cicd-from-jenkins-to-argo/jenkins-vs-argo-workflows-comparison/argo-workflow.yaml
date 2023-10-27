@@ -1,0 +1,215 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: ci-workflow
+spec:
+  metrics:
+    prometheus:
+      # Writes a prometheus metric stating the length of time it took the workflow to complete. Grouped by workflow status and 'type'.
+      - name: exec_duration_gauge
+        labels:
+          - key: name
+            value: "ci-workflow"
+          - key: type
+            value: "pull-request"
+          - key: status
+            value: "{{status}}"
+        help: "Duration gauge by name"
+        gauge:
+          value: "{{workflow.duration}}"
+          realtime: false
+      # If the workflow fails, we increase the Prometheus failure counter by 1.
+      - name: result_counter
+        help: "Count of step execution by result status"
+        labels:
+          - key: status
+            value: Failed
+          - key: name
+            value: "ci-workflow"
+          - key: type
+            value: "pull-request"
+        when: "{{status}} == Failed"
+        counter:
+          value: "1"
+      # If the workflow succeeds, we increase the Prometheus succeeded counter by 1.
+      - name: result_counter
+        help: "Count of step execution by result status"
+        labels:
+          - key: status
+            value: Succeeded
+          - key: name
+            value: "ci-workflow"
+          - key: type
+            value: "pull-request"
+        when: "{{status}} == Succeeded"
+        counter:
+          value: "1"
+  entrypoint: main
+  # We request an NFS share (called 'workdir') so that we can pull the code, and manipulate it across multiple nodes.
+  # By the nature of the share, we would be able to access it from multiple nodes at the same time, allowing for parallel nodes.
+  # We use nfs-server-provisioner for this, which uses disk on the Kubernetes node to provision the share. The PVCs are cleaned up when the workflow finishes.
+  volumeClaimTemplates:
+  - metadata:
+      name: workdir
+    spec:
+      accessModes: [ "ReadWriteMany" ]
+      storageClassName: nfs
+      resources:
+        requests:
+          storage: 1Gi
+  # The container build step copies the code from the NFS share to this ephemeral volume, and then runs the build.
+  # We do this a) because NFS shares are slow and b) to allow us to run another workflow step alongside the build if we wish.
+  volumes:
+  - name: container-build
+    emptyDir: {}
+  - name: sonarscanner
+    emptyDir: {}
+  arguments:
+    parameters:
+    - name: app_repo
+      value: ""
+    - name: git_branch
+      value: ""
+    - name: target_branch
+      value: ""
+    - name: is_pr
+      value: ""
+    - name: container_tag
+      value: ""
+    - name: jira_ticket_number
+      value: ""
+ # All the steps in this DAG are referencing external templates.
+ # This allows us to re-use those templates in other workflows, and also makes this CI workflow quite tidy.
+  templates:
+    - name: main
+      dag:
+        tasks:
+          - name: git-checkout
+            templateRef:
+              name: git-checkout
+              template: main
+          - name: get-git
+            templateRef:
+              name: get-git
+              template: main
+          - name: container-build
+            arguments:
+              parameters:
+              - name: container_tag
+                value: "{{workflow.parameters.container_tag}}-{{tasks.get-git.outputs.parameters.release-version}}"
+              - name: container_image
+                value: "pipekit-internal/foo"
+              - name: dockerfile
+                value: "Dockerfile"
+              - name: path
+                value: "/"
+            templateRef:
+              name: container-build
+              template: main
+            depends: git-checkout && get-git
+          - name: run-unit-tests
+            templateRef:
+              name: run-unit-tests
+              template: main
+            depends: git-checkout && get-git
+          - name: cpd-certification
+            templateRef:
+              name: cpd-certification
+              template: main
+            depends: container-build
+          - name: code-analysis
+            templateRef:
+              name: code-analysis
+              template: main
+            arguments:
+              parameters:
+                - name: pr_num
+                  value: "{{item.number}}"
+                - name: target_branch
+                  value: "{{item.baseref}}"
+                - name: git_branch
+                  value: "{{item.headref}}"
+                - name: git_sha
+                  value: "{{item.sha}}"
+            withParam: "{{tasks.get-git.outputs.parameters.pr}}"
+            depends: git-checkout && get-git
+          - name: deploy-application-preview
+            templateRef:
+              name: deploy-application
+              template: deploy-application
+            arguments:
+              parameters:
+                - name: app_type
+                  value: "preview"
+                - name: gh_tag
+                  value: "{{tasks.get-git.outputs.parameters.release-version}}"
+            depends: container-build && cpd-certification && code-analysis && run-unit-tests
+          - name: update-jira
+            templateRef:
+              name: update-jira
+              template: main
+            depends: deploy-application
+          - name: update-jira-pr
+            templateRef:
+              name: update-jira
+              template: update-jira
+            arguments:
+              parameters:
+                - name: jira_ticket_number
+                  value: "{{workflow.parameters.jira_ticket_number}}"
+                - name: message
+                  value: "PR: {{tasks.get-git.outputs.parameters.pr_num}}: {{tasks.get-git.outputs.parameters.release-version}} is now available on the preview environment"
+            depends: update-jira
+            when: "{{workflow.parameters.is_pr}} == true"
+          - name: karate-build
+            templateRef:
+              name: container-build
+              template: main
+            arguments:
+              parameters:
+              - name: container_tag
+                value: "{{workflow.parameters.container_tag}}-{{tasks.get-git.outputs.parameters.release-version}}"
+              - name: container_image
+                value: "pipekit-internal/karate"
+              - name: dockerfile
+                value: "karate-tests/Dockerfile"
+              - name: path
+                value: "karate-tests/"
+            depends: update-jira-pr && get-git
+          - name: karate-tests
+            templateRef:
+              name: karate-tests
+              template: karate-tests
+            arguments:
+              parameters:
+                - name: karate_version
+                  value: "{{workflow.parameters.container_tag}}-{{tasks.get-git.outputs.parameters.release-version}}"
+            depends: karate-build
+          - name: deploy-application-preprod
+            templateRef:
+              name: deploy-application
+              template: deploy-application
+            arguments:
+              parameters:
+                - name: app_type
+                  value: "preprod"
+                - name: gh_tag
+                  value: "{{tasks.get-git.outputs.parameters.release-version}}"
+            depends: update-jira
+            when: "{{workflow.parameters.is_pr}} == true && {{workflow.parameters.target_branch}} == master"
+          - name: scorecard-check
+            templateRef:
+              name: scorecard-check
+              template: main
+            depends: deploy-application-preprod
+          - name: update-jira-master
+            templateRef:
+              name: update-jira
+              template: update-jira
+            arguments:
+              parameters:
+                - name: jira_ticket_number
+                  value: "{{workflow.parameters.jira_ticket_number}}"
+                - name: message
+                  value: "{{tasks.get-git.outputs.parameters.release-version}} is now available on the preprod environment"
+            depends: scorecard-check
