@@ -107,6 +107,13 @@ pipeline {
                                 codeCov(config)
                             }
                         }
+                        stage('CPD Certification & Publish') {
+                            steps {
+                                container('cpd2') {
+                                    intuitCPD2Podman(config, "-i ${config.image_full_name} --buildfile Dockerfile")
+                                }
+                            }
+                        }
                         stage('Code Analysis') {
                             when {expression {return config.SonarQubeAnalysis}}
                             steps {
@@ -163,6 +170,142 @@ pipeline {
             post {
                 success {
                     transitionJiraTickets(config, 'Ready for Review')
+                }
+            }
+            stages {
+                stage('Build karate container') {
+                    steps {
+                        container('podman') {
+                            podmanBuild("--rm=false -t ${config.karate_image_full_name} -f Dockerfile.karate .")
+                            podmanPush([image_full_name: config.karate_image_full_name,
+                                    service_name: config.service_name,
+                                    registry: config.registry])
+                        }
+                    }
+                }
+                stage('Component Test') {
+                    options {
+                        timeout(time: 20, unit: 'MINUTES')
+                    }
+                    agent {
+                        kubernetes {
+                            yaml """
+                apiVersion: v1
+                kind: Pod
+                spec:
+                    containers:
+                     - name: karate
+                       image: ${config.karate_image_full_name}
+                       tty: true
+                       imagePullPolicy: Always
+                       readinessProbe:
+                         httpGet:
+                           scheme: HTTP
+                           path: /health/full
+                           port: 9000
+                         initialDelaySeconds: 15
+                         periodSeconds: 5
+                     - name: app
+                       image: ${config.image_full_name}
+                       volumeMounts:
+                         - name: app-logs-gc
+                           mountPath: /app/logs/gc/
+                       tty: true
+                       imagePullPolicy: Always
+                       env:
+                         - name: APP_NAME
+                           value: ${config.service_name}
+                         - name: APP_ENV
+                           value: integration
+                         - name: ASSET_ID
+                           value: ${config.asset_id}
+                         - name: ASSET_ALIAS
+                           value: ${config.asset_alias}
+                         - name: L1
+                           value: ${config.l1}
+                         - name: L2
+                           value: ${config.l2}
+                       readinessProbe:
+                         httpGet:
+                           scheme: HTTPS
+                           path: /health/full
+                           port: 8443
+                         initialDelaySeconds: 15
+                         periodSeconds: 5
+                     - name: test
+                       image: ${config.test_image_full_name}
+                       tty: true
+                       command: [ "cat" ]
+                       imagePullPolicy: Always
+                    volumes:
+                     - emptyDir:
+                       sizeLimit: 1000Mi
+                       name: app-logs-gc
+            """
+                        }
+                    }
+                    stages {
+                        stage('Component Functional/Perf Tests') {
+                            parallel {
+                                stage('Functional Tests') {
+                                    post {
+                                        success {
+                                            githubNotify context: 'Component Functional Tests', credentialsId: 'github-svc-sbseg-ci', gitApiUrl: config['github_api_endpoint'], description: 'Tests Passed', status: 'SUCCESS', targetUrl: env.JOB_URL + '/' + env.BUILDNUMBER + '/Component_20Functional_20Test_20Results'
+                                        }
+                                        failure {
+                                            githubNotify context: 'Component Functional Tests', credentialsId: 'github-svc-sbseg-ci', gitApiUrl: config['github_api_endpoint'], description: 'Tests are failing', status: 'FAILURE', targetUrl: env.RUN_DISPLAY_URL
+                                        }
+                                    }
+                                    steps {
+                                        script {
+                                            try {
+                                                container('test') {
+                                                    sh label: 'Run Component Tests', script: 'mvn -s settings.xml -f app/pom.xml test -Pkarate -Dkarate.env=mock -Dkarate.mock.port=9000 -Dkarate.server.port=8443'
+                                                }
+                                            }finally {
+                                                publishHTML target: [
+                                                        allowMissing: false,
+                                                        alwaysLinkToLastBuild: false,
+                                                        keepAll: true,
+                                                        reportDir: 'app/target/cucumber-html-reports',
+                                                        reportFiles: 'overview-features.html',
+                                                        reportName: 'Component Functional Test Results'
+                                                    ]
+                                            }
+                                        }
+                                    }
+                                }
+                                stage('Perf Tests') {
+                                    post {
+                                        success {
+                                            githubNotify context: 'Component Perf Tests', credentialsId: 'github-svc-sbseg-ci', gitApiUrl: config['github_api_endpoint'], description: 'Tests Passed', status: 'SUCCESS', targetUrl: env.JOB_URL + '/' + env.BUILDNUMBER + '/Component_20Perf_20Test_20Results'
+                                        }
+                                        failure {
+                                            githubNotify context: 'Component Perf Tests', credentialsId: 'github-svc-sbseg-ci', gitApiUrl: config['github_api_endpoint'], description: 'Tests are failing', status: 'FAILURE', targetUrl: env.RUN_DISPLAY_URL
+                                        }
+                                    }
+                                    steps {
+                                        script {
+                                            try {
+                                                container('test') {
+                                                    sh label: 'Run Perf Tests', script: 'mvn -s settings.xml -f app/pom.xml gatling:test -Pperf -Dkarate.env=mock -Dkarate.mock.port=9000 -Dkarate.server.port=8443'
+                                                }
+                                            }finally {
+                                                publishHTML target: [
+                                                        allowMissing: false,
+                                                        alwaysLinkToLastBuild: false,
+                                                        keepAll: true,
+                                                        reportDir: 'app/target/gatling',
+                                                        reportFiles: '**/index.html',
+                                                        reportName: 'Component Perf Test Results'
+                                                    ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
