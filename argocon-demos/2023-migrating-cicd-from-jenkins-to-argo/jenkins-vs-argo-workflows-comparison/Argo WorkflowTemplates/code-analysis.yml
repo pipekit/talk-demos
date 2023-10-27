@@ -4,7 +4,7 @@ metadata:
   name: code-analysis
   annotations:
     workflows.argoproj.io/description: >-
-      Runs sonaqube analysis on the codebase.
+      Runs sonarqube analysis on the codebase.
     workflows.argoproj.io/maintainer: 'Pipekit Inc'
     workflows.argoproj.io/maintainer_url: 'https://pipekit.io'
     workflows.argoproj.io/version: '>= 3.4.0'

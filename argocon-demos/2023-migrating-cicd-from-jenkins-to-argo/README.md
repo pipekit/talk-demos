@@ -1,4 +1,4 @@
-# Migrating from Jenkins to Argo for CI/CD
+# Migrating CI/CD from Jenkins to Argo
 
 [![Pipekit Logo](https://raw.githubusercontent.com/pipekit/talk-demos/main/assets/images/pipekit-logo.png)](https://pipekit.io)
 
@@ -7,8 +7,8 @@
 
 The slide deck for this talk can be found [here](assets/slide-deck.pdf). -->
 
-## Comparing Jenkins with Argo Workflows
-A comparison of a Jenkinsfile and an Argo Workflow demonstrating how the two relate. Neither is intended to be a working example.
+## Comparing Jenkins with Argo Workflows for CI/CD
+A comparison of a Jenkinsfile and an Argo Workflow YAML file demonstrating how the two relate. **Neither is intended to be a working example.**
 
 ---
 
