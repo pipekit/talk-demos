@@ -1,1 +1,89 @@
-jenkinsfile-placeholder
+@Library(value = 'cicd-shared-lib', changelog = false) _
+pipeline {
+    agent {
+        kubernetes {
+            yamlFile 'KubernetesPods.yaml'
+        }
+    }
+
+    stages {
+        stage('Build:') {
+            when {
+                anyOf {
+                    branch 'master'
+                    changeRequest()
+                }
+            }
+
+            stages {
+                stage('Container Build') {
+                    steps {
+                        container('podman') {
+                            podmanBuild("--rm=false --build-arg=\"build=${env.BUILD_URL}\" --build-arg appVersion=${config.version} -t ${config.image_full_name} .")
+                            podmanMount(podmanFindImage([image: 'build', build: env.BUILD_URL]), {steps,mount ->
+                                sh(label: 'copy outputs to workspace', script: "cp -r ${mount}/usr/src/app/target ${env.WORKSPACE}")
+                            })
+                            podmanTag(podmanFindImage([image: 'build', build: env.BUILD_URL]), config.test_image_full_name)
+                            podmanPush([image_full_name: config.test_image_full_name, service_name: config.service_name, registry: config.registry])
+                        }
+                    }
+                }
+
+                stage('Container Publish') {
+                    parallel {
+                        stage('Report Coverage & Unit Test Results') {
+                            steps {
+                                junit '**/surefire-reports/**/*.xml'
+                                jacoco()
+                                codeCov(config)
+                            }
+                        }
+
+                        stage('Security Scan') {
+                            steps {
+                                container('cpd2') {
+                                    intuitCPD2Podman(config, "-i ${config.image_full_name} --buildfile Dockerfile")
+                                }
+                            }
+                        }
+
+                        stage('Static Code Analysis') {
+                            steps {
+                                container('test') {
+                                    echo 'Running static Code analysis: from JenkinsFile'
+                                    reportSonarQube(config)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                stage('Transition Jira Tickets') {
+                    steps {
+                        script {
+                            transitionJiraTickets(config, 'Closed')
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Deploy:') {
+            stages {
+                stage('Deploy') {
+                    steps {
+                        container('cdtools') {
+                            gitOpsDeploy(config, 'qa-usw2', config.image_full_name)
+                        }
+                    }
+                }
+
+                stage('Transition Jira Tickets') {
+                    steps {
+                        transitionJiraTickets(config, 'Deployed to QA')
+                    }
+                }
+            }
+        }
+    }
+}
