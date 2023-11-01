@@ -27,9 +27,6 @@ following:
 To do so, the sensor relies on the Workflow of Workflows pattern because
 WorkflowTemplates used by a Workflow are added at compile time.
 
-## Demo video
-[View a recording of this demo on Google Drive here.]()
-
 ---
 
 ## About Pipekit
