@@ -5,7 +5,7 @@
 ## The talk
 <!-- The talk [can be found here](https://www.youtube.com/watch?v=QZI-LXJGWYI). -->
 
-<!-- The slide deck for this talk can be found [here](assets/slide-deck.pdf). -->
+The slide deck for this talk can be found [here](assets/slide-deck.pdf).
 
 ## Example Workflow
 An example workflow that demonstrates how you could use Argo Workflows and Argo CD to deploy and configure vClusters. It can be found [here](create-and-setup-vcluster-workflow/create.yaml).
