@@ -15,7 +15,7 @@ We recommend you swap the 'hello world' workflow for something more realistic to
 The aim of this is to demonstrate that by running many Argo Workflows instances inside vClusters, you will reduce the number of API calls made back to the kubernetes API on the host cluster. This will reduce API throttling and should allow you to run more workflows/pods concurrently than you would if you were just running on the host cluster.
 
 ## Prepare the vClusters
-We used [vCluster pro](https://www.vcluster.com/pro/) for this test. This allows us to use CRs to create the vclusters, instead of the full helm chart.
+We used [vCluster pro](https://www.vcluster.com/pro/) for this test. This allows us to use CRs to create the vClusters instead of the full helm chart.
 
 You will first need to create and deploy a `VirtualClusterTemplate` CR. One is not supplied here as the exact template will depend on your needs.
 
@@ -33,7 +33,7 @@ for ns in load0 load1 load2 load3 load4 load5 load6 load7 load8 load9 load10 loa
 done
 ```
 
-### Install Argo Workflows into each cluster
+### Install Argo Workflows into each vCluster
 ```bash
 for ns in load0 load1 load2 load3 load4 load5 load6 load7 load8 load9 load10 load11 load12 load13 load14 load15 load16 load17 load18 load19 load20 load21 load22 load23 load24 load25 load26 load27 load28 load29 load30; do
     vcluster connect $ns
@@ -53,7 +53,7 @@ done
 
 ```
 
-## Delete the vclusters
+## Delete the vClusters
 ```bash
 for ns in load0 load1 load2 load3 load4 load5 load6 load7 load8 load9 load10 load11 load12 load13 load14 load15 load16 load17 load18 load19 load20 load21 load22 load23 load24 load25 load26 load27 load28 load29 load30; do
     helm template -n loft-p-default load vcluster-pro-manifest -f vcluster-pro-manifest/values.yaml --set vcid=$ns | kubectl delete --wait=false -f - || true
