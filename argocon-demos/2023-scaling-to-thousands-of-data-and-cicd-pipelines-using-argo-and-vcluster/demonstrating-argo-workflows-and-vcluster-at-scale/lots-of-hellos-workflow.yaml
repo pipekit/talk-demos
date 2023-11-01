@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: hello-example-
+  namespace: argo
+spec:
+  entrypoint: main
+  podGC:
+    strategy: OnPodSuccess
+  ttlStrategy:
+    secondsAfterCompletion: 20
+  templates:
+  - name: main
+    dag:
+      tasks:
+      - name: main
+        template: hello
+        withSequence:
+          count: 400
+  - name: hello
+    resource:
+      action: create
+      manifest: |
+        apiVersion: argoproj.io/v1alpha1
+        kind: Workflow
+        metadata:
+          generateName: hello-world-
+        spec:
+          entrypoint: whalesay
+          templates:
+          - name: whalesay
+            container:
+              image: docker/whalesay:latest
+              command: [cowsay]
+              args: ["Hello ArgoCon!"]
+      successCondition: status.phase == Succeeded
+      failureCondition: status.phase in (Failed, Error)

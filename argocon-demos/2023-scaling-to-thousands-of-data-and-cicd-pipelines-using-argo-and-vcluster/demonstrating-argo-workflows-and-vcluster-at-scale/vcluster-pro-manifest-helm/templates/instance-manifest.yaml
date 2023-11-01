@@ -1,0 +1,20 @@
+apiVersion: storage.loft.sh/v1
+kind: VirtualClusterInstance
+metadata:
+  finalizers:
+  - loft.sh/cleanup-management
+  - loft.sh/cleanup
+  name: {{.Values.vcid}}
+  namespace: loft-p-default
+spec:
+  clusterRef:
+    cluster: loft-cluster
+    namespace: {{.Values.vcid}}
+    virtualCluster: {{.Values.vcid}}
+  owner:
+    user: admin
+  templateRef:
+    version: "x.x.x"
+    name: vcluster-template-name
+  parameters: |
+    vcidentifier: {{.Values.vcid}}

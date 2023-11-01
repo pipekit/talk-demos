@@ -2,8 +2,8 @@
 
 This repo contains demos from ArgoCon and Open Source Summit.
 
-## ArgoCon 2023
 ## ArgoCon USA 2023
+* [Scaling to Thousands of Data and CI/CD Pipelines using Argo and Virtual Clusters](argocon-demos/2023-scaling-to-thousands-of-data-and-cicd-pipelines-using-argo-and-vcluster)
 * [Migrating CI/CD from Jenkins to Argo](argocon-demos/2023-migrating-cicd-from-jenkins-to-argo)
 
 ## ArgoCon EU 2023
