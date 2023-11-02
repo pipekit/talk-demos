@@ -161,30 +161,6 @@ spec:
                   value: "PR: {{tasks.get-git.outputs.parameters.pr_num}}: {{tasks.get-git.outputs.parameters.release-version}} is now available on the preview environment"
             depends: update-jira
             when: "{{workflow.parameters.is_pr}} == true"
-          - name: karate-build
-            templateRef:
-              name: container-build
-              template: main
-            arguments:
-              parameters:
-              - name: container_tag
-                value: "{{workflow.parameters.container_tag}}-{{tasks.get-git.outputs.parameters.release-version}}"
-              - name: container_image
-                value: "pipekit-internal/karate"
-              - name: dockerfile
-                value: "karate-tests/Dockerfile"
-              - name: path
-                value: "karate-tests/"
-            depends: update-jira-pr && get-git
-          - name: karate-tests
-            templateRef:
-              name: karate-tests
-              template: karate-tests
-            arguments:
-              parameters:
-                - name: karate_version
-                  value: "{{workflow.parameters.container_tag}}-{{tasks.get-git.outputs.parameters.release-version}}"
-            depends: karate-build
           - name: deploy-application-preprod
             templateRef:
               name: deploy-application
@@ -197,11 +173,6 @@ spec:
                   value: "{{tasks.get-git.outputs.parameters.release-version}}"
             depends: update-jira
             when: "{{workflow.parameters.is_pr}} == true && {{workflow.parameters.target_branch}} == master"
-          - name: scorecard-check
-            templateRef:
-              name: scorecard-check
-              template: main
-            depends: deploy-application-preprod
           - name: update-jira-master
             templateRef:
               name: update-jira
@@ -212,4 +183,4 @@ spec:
                   value: "{{workflow.parameters.jira_ticket_number}}"
                 - name: message
                   value: "{{tasks.get-git.outputs.parameters.release-version}} is now available on the preprod environment"
-            depends: scorecard-check
+            depends: deploy-application-preprod
