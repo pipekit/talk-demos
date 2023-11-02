@@ -16,21 +16,28 @@ spec:
       - name: main
         template: hello
         withSequence:
-          count: 400
+          count: 170
   - name: hello
     resource:
       action: create
+      setOwnerReference: true
       manifest: |
         apiVersion: argoproj.io/v1alpha1
         kind: Workflow
         metadata:
           generateName: hello-world-
+          namespace: argo
         spec:
           entrypoint: whalesay
+          podGC:
+            strategy: OnPodSuccess
+          ttlStrategy:
+            secondsAfterCompletion: 20
           templates:
           - name: whalesay
             container:
-              image: docker/whalesay:latest
+              # This docker container works on both ARM and x64
+              image: ghcr.io/tico24/whalesay
               command: [cowsay]
               args: ["Hello ArgoCon!"]
       successCondition: status.phase == Succeeded
