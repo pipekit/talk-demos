@@ -1,12 +1,12 @@
 # Automating Cloud-native Spark Jobs with Argo Workflows
 
-[![Pipekit Logo](https://raw.githubusercontent.com/pipekit/talk-demos/main/assets/images/pipekit-logo.png)](https://pipekit.io)
+[![Pipekit Logo](https://raw.githubusercontent.com/pipekit/talk-demos/main/assets/images/pipekit-logo.png)](https://pipekit.io?utm_campaign=talk-demos)
 
 [The talk can be found here](https://www.youtube.com/watch?v=QV3YKUOiKo0).
 
 ## Goal of this repository
 - Showcase how Spark Jobs can be orchestrated with Argo Workflows
-- Provide a how-to steps to run all examples on local.  
+- Provide a how-to steps to run all examples on local.
 
 ## Requirements
 - k3d
@@ -66,7 +66,7 @@ This example is creating `CronWorkflow` and it's requiring `Kaggle.com` and `AWS
 ```
 cd python
 ```
-- Build and import Docker image. 
+- Build and import Docker image.
 ```
 docker build -t argo-spark-integration-python-download-job -f Dockerfile-python-download-job .
 k3d image import argo-spark-integration-python-download-job:latest
@@ -94,4 +94,6 @@ kubectl -n argo port-forward deploy/argo-server 2746:2746
 
 ## About Pipekit
 
-[Pipekit](pipekit.io) allows you to manage your workflows at scale. The control plane configures Argo Workflows for you in your infrastructure, enabling you to optimize multi-cluster workloads while reducing your cloud spend.  The team at Pipekit is also happy to support you through your Argo Workflows journey via commercial support.
+Pipekit is the control plane for Argo Workflows. Platform teams use Pipekit to manage data & CI pipelines at scale, while giving developers self-serve access to Argo. Pipekit's unified logging view, enterprise-grade RBAC, and multi-cluster management capabilities lower maintenance costs for platform teams while delivering a superior devex for Argo users. Sign up for a 30-day free trial at [pipekit.io/signup](https://pipekit.io/signup?utm_campaign=talk-demos).
+
+Learn more about Pipekit's professional support for companies already using Argo at [pipekit.io/services](https://pipekit.io/services?utm_campaign=talk-demos).

@@ -1,6 +1,6 @@
 # Configuring Volumes for Parallel Workflow Reads and Writes
 
-[![Pipekit Logo](https://raw.githubusercontent.com/pipekit/talk-demos/main/assets/images/pipekit-logo.png)](https://pipekit.io)
+[![Pipekit Logo](https://raw.githubusercontent.com/pipekit/talk-demos/main/assets/images/pipekit-logo.png)](https://pipekit.io?utm_campaign=talk-demos)
 
 The tests used in the Argocon [Lightning Talk: Configuring Volumes for Parallel Workflow Reads and Writes - Lukonde Mwila, Amazon Web Services & Tim Collins, Pipekit
 ](https://sched.co/1Jo9v)
@@ -39,16 +39,10 @@ This same example also offers the exact same workflow using minio as the artifac
 [The repo for the nfs-server provisioner](https://github.com/kubernetes-sigs/nfs-ganesha-server-and-external-provisioner).
 
 
-## Argo Workflows Support
-
-For more information about Argo Workflows, please see the following resources:
-
-
-* [The Argo Workflows Documentation](https://argoproj.github.io/argo-workflows/)
-* [The Argo Workflows GitHub Repository](https://github.com/argoproj/argo-workflows/)
-* [The Argo Workflows Slack Channel](https://cloud-native.slack.com/archives/C01QW9QSSSK)
-
 ---
 
 ## About Pipekit
-[Pipekit](pipekit.io) allows you to manage your workflows at scale. The control plane configures Argo Workflows for you in your infrastructure, enabling you to optimize multi-cluster workloads while reducing your cloud spend.  The team at Pipekit is also happy to support you through your Argo Workflows journey via commercial support.
+
+Pipekit is the control plane for Argo Workflows. Platform teams use Pipekit to manage data & CI pipelines at scale, while giving developers self-serve access to Argo. Pipekit's unified logging view, enterprise-grade RBAC, and multi-cluster management capabilities lower maintenance costs for platform teams while delivering a superior devex for Argo users. Sign up for a 30-day free trial at [pipekit.io/signup](https://pipekit.io/signup?utm_campaign=talk-demos).
+
+Learn more about Pipekit's professional support for companies already using Argo at [pipekit.io/services](https://pipekit.io/services?utm_campaign=talk-demos).
