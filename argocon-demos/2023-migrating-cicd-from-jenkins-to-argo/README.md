@@ -10,6 +10,9 @@ The slide deck for this talk can be found [here](assets/slide-deck.pdf). -->
 ## Comparing Jenkins with Argo Workflows for CI/CD
 A comparison of a Jenkinsfile and an Argo Workflow YAML file demonstrating how the two relate. **Neither is intended to be a working example.**
 
+## Working CI/CD example using Argo Workflows and Argo CD
+For a working example of Argo for CI/CD, visit our [Argo CI Example repo](https://github.com/pipekit/argo-workflows-ci-example).
+
 ---
 
 ## About Pipekit
