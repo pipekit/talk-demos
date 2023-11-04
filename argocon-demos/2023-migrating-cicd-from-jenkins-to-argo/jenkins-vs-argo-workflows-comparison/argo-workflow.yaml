@@ -30,8 +30,8 @@ spec:
       resources:
         requests:
           storage: 1Gi
- # All the steps in this DAG are referencing external templates.
- # This allows us to re-use those templates in other workflows, and also makes this CI workflow quite tidy.
+ # All the steps in this DAG are referencing external WorkflowTemplates.
+ # This allows us to re-use those WorkflowTemplates in other workflows, and also makes this CI workflow quite tidy.
   templates:
     - name: main
       dag:
