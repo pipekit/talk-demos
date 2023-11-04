@@ -3,67 +3,7 @@ kind: WorkflowTemplate
 metadata:
   name: ci-workflow
 spec:
-  metrics:
-    prometheus:
-      # Writes a prometheus metric stating the length of time it took the workflow to complete. Grouped by workflow status and 'type'.
-      - name: exec_duration_gauge
-        labels:
-          - key: name
-            value: "ci-workflow"
-          - key: type
-            value: "pull-request"
-          - key: status
-            value: "{{status}}"
-        help: "Duration gauge by name"
-        gauge:
-          value: "{{workflow.duration}}"
-          realtime: false
-      # If the workflow fails, we increase the Prometheus failure counter by 1.
-      - name: result_counter
-        help: "Count of step execution by result status"
-        labels:
-          - key: status
-            value: Failed
-          - key: name
-            value: "ci-workflow"
-          - key: type
-            value: "pull-request"
-        when: "{{status}} == Failed"
-        counter:
-          value: "1"
-      # If the workflow succeeds, we increase the Prometheus succeeded counter by 1.
-      - name: result_counter
-        help: "Count of step execution by result status"
-        labels:
-          - key: status
-            value: Succeeded
-          - key: name
-            value: "ci-workflow"
-          - key: type
-            value: "pull-request"
-        when: "{{status}} == Succeeded"
-        counter:
-          value: "1"
   entrypoint: main
-  # We request an NFS share (called 'workdir') so that we can pull the code, and manipulate it across multiple nodes.
-  # By the nature of the share, we would be able to access it from multiple nodes at the same time, allowing for parallel nodes.
-  # We use nfs-server-provisioner for this, which uses disk on the Kubernetes node to provision the share. The PVCs are cleaned up when the workflow finishes.
-  volumeClaimTemplates:
-  - metadata:
-      name: workdir
-    spec:
-      accessModes: [ "ReadWriteMany" ]
-      storageClassName: nfs
-      resources:
-        requests:
-          storage: 1Gi
-  # The container build step copies the code from the NFS share to this ephemeral volume, and then runs the build.
-  # We do this a) because NFS shares are slow and b) to allow us to run another workflow step alongside the build if we wish.
-  volumes:
-  - name: container-build
-    emptyDir: {}
-  - name: sonarscanner
-    emptyDir: {}
   arguments:
     parameters:
     - name: app_repo
@@ -78,6 +18,18 @@ spec:
       value: ""
     - name: jira_ticket_number
       value: ""
+  # We request an NFS share (called 'workdir') so that we can pull the code, and manipulate it across multiple nodes.
+  # By the nature of the share, we would be able to access it from multiple nodes at the same time, allowing for parallel nodes.
+  # We use nfs-server-provisioner for this, which uses disk on the Kubernetes node to provision the share. The PVCs are cleaned up when the workflow finishes.
+  volumeClaimTemplates:
+  - metadata:
+      name: workdir
+    spec:
+      accessModes: [ "ReadWriteMany" ]
+      storageClassName: nfs
+      resources:
+        requests:
+          storage: 1Gi
  # All the steps in this DAG are referencing external templates.
  # This allows us to re-use those templates in other workflows, and also makes this CI workflow quite tidy.
   templates:
@@ -184,3 +136,44 @@ spec:
                 - name: message
                   value: "{{tasks.get-git.outputs.parameters.release-version}} is now available on the preprod environment"
             depends: deploy-application-preprod
+  metrics:
+    prometheus:
+      # Writes a prometheus metric stating the length of time it took the workflow to complete. Grouped by workflow status and 'type'.
+      - name: exec_duration_gauge
+        labels:
+          - key: name
+            value: "ci-workflow"
+          - key: type
+            value: "pull-request"
+          - key: status
+            value: "{{status}}"
+        help: "Duration gauge by name"
+        gauge:
+          value: "{{workflow.duration}}"
+          realtime: false
+      # If the workflow fails, we increase the Prometheus failure counter by 1.
+      - name: result_counter
+        help: "Count of step execution by result status"
+        labels:
+          - key: status
+            value: Failed
+          - key: name
+            value: "ci-workflow"
+          - key: type
+            value: "pull-request"
+        when: "{{status}} == Failed"
+        counter:
+          value: "1"
+      # If the workflow succeeds, we increase the Prometheus succeeded counter by 1.
+      - name: result_counter
+        help: "Count of step execution by result status"
+        labels:
+          - key: status
+            value: Succeeded
+          - key: name
+            value: "ci-workflow"
+          - key: type
+            value: "pull-request"
+        when: "{{status}} == Succeeded"
+        counter:
+          value: "1"
