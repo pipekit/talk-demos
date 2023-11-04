@@ -136,6 +136,7 @@ spec:
                 - name: message
                   value: "{{tasks.get-git.outputs.parameters.release-version}} is now available on the preprod environment"
             depends: deploy-application-preprod
+# We define our workflow metrics below using Prometheus.
   metrics:
     prometheus:
       # Writes a prometheus metric stating the length of time it took the workflow to complete. Grouped by workflow status and 'type'.
