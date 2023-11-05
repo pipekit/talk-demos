@@ -3,9 +3,9 @@
 [![Pipekit Logo](https://raw.githubusercontent.com/pipekit/talk-demos/main/assets/images/pipekit-logo.png)](https://pipekit.io?utm_campaign=talk-demos)
 
 ## The talk
-<!-- The talk [can be found here](https://youtu.be/g8TCgnrM648).
+<!-- The talk recording [can be found here](https://youtu.be/g8TCgnrM648).-->
 
-The slide deck for this talk can be found [here](assets/slide-deck.pdf). -->
+The slide deck for this talk can be found [here](slides/Migrating-CI_CD-Jenkins-Argo-ARCOGON_NA2023.pdf). 
 
 ## Comparing Jenkins with Argo Workflows for CI/CD
 A comparison of a Jenkinsfile and an Argo Workflow YAML file demonstrating how the two relate. **Neither is intended to be a working example.**
