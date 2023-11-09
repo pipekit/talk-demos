@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: memoized-sequencing-
+spec:
+  entrypoint: entrypoint
+  templates:
+  - name: entrypoint
+    steps:
+      - - name: sequence
+          template: sequence
+      - - name: usedna
+          template: dothing
+          arguments:
+            artifacts:
+              - name: dna
+                from: "{{steps.sequence.outputs.artifacts.dna}}"
+  - name: sequence
+    memoize:
+      key: "name"
+      cache:
+        configMap:
+          name: dna-cache
+    container:
+      image: docker/whalesay:latest
+      command: [sh, -c]
+      args: ["cowsay hello_world `date` > /tmp/hello_world.txt"]
+    outputs:
+      artifacts:
+      - name: dna
+        path: /tmp/hello_world.txt
+  - name: dothing
+    inputs:
+      artifacts:
+      - name: dna
+        path: /tmp/hello_world.txt
+    container:
+      image: alpine:3.7
+      command: [sh, -c]
+      args: ['sleep 3; echo "Doing a thing"']
