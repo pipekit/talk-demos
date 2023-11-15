@@ -1,0 +1,50 @@
+[tool.poetry]
+name = "kubecon-na-23-llama2-finetune"
+version = "0.1.0"
+description = ""
+authors = ["Flaviu Vadan <flaviuvadan@gmail.com>"]
+license = "LLAMA 2 COMMUNITY LICENSE AGREEMENT"
+readme = "README.md"
+packages = [
+    { include = "talk", from = "src" },
+]
+
+[tool.poetry.dependencies]
+python = "3.10.13"
+torch = "2.1.0"
+numpy = "^1.26.0"
+pandas = "2.1.1"
+python-etcd = "0.4.5"
+transformers = "4.33.0"
+scipy = "1.11.3"
+datasets = "2.14.5"
+loralib = "0.1.2"
+accelerate = "0.23.0"
+black = "23.9.1"
+hera = "5.7.3"
+ruff = "0.0.292"
+llama-recipes = "0.0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.coverage.paths]
+source = ["talk"]
+
+[tool.ruff]
+line-length = 119
+show-fixes = true
+select = ["E", "F", "D"]
+ignore = ["E501"]
+target-version = "py38"
+extend-select = ["I"]
+src = ["talk"]
+
+[tool.ruff.isort]
+force-wrap-aliases = true
+combine-as-imports = true
+known-first-party = ["hera"]
+
+[tool.ruff.pydocstyle]
+convention = "google"
