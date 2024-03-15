@@ -2,6 +2,9 @@
 
 This repo contains demos from ArgoCon and Open Source Summit.
 
+## ArgoCon EU 2024
+* [Mastering Argo Workflows at Scale: A Practical Guide to Scalability Excellence](argocon-demos/2024-mastering-argo-workflows-at-scale)
+
 ## ArgoCon USA 2023
 * [Scaling to Thousands of Data and CI/CD Pipelines using Argo and Virtual Clusters](argocon-demos/2023-scaling-to-thousands-of-data-and-cicd-pipelines-using-argo-and-vcluster)
 * [Migrating CI/CD from Jenkins to Argo](argocon-demos/2023-migrating-cicd-from-jenkins-to-argo)
@@ -39,4 +42,4 @@ For more information about Argo Workflows, please see the following resources:
 
 ## About Pipekit
 
-Pipekit is the control plane for Argo Workflows. Platform teams use Pipekit to manage data & CI pipelines at scale, while giving developers self-serve access to Argo. Pipekit's unified logging view, enterprise-grade RBAC, and multi-cluster management capabilities lower maintenance costs for platform teams while delivering a superior devex for Argo users. Sign up for a 30-day free trial at [pipekit.io/signup](https://pipekit.io/signup?utm_campaign=talk-demos).
+Pipekit is the control plane for Argo Workflows. Platform teams use Pipekit to manage data & CI pipelines at scale, while giving developers self-serve access to Argo. Pipekit's unified logging view, Workflow Metrics dashboards, enterprise-grade RBAC and multi-cluster management capabilities lower maintenance costs for platform teams while delivering a superior devex for Argo users. Sign up for a 30-day free trial at [pipekit.io/signup](https://pipekit.io/signup?utm_campaign=talk-demos).
