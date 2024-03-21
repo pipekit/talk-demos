@@ -8,7 +8,7 @@ This repo contains demos from ArgoCon and Open Source Summit.
 * [Panel: Argo for ML: Achieving Scalability and User Experience](https://youtu.be/Gldnvmn3dSQ)
 * [Demystifying Argo Workflows: An Architectural Deep Dive](https://youtu.be/FBRMURQYbgw)
 * [Scaling Cloud-Native CI/CD with Jenkins and the Argo Projects](https://youtu.be/7uWiTS85dKc)
-* [Argo CD - Plugins as Services](https://youtu.be/n0X2b8Rcqb4)
+* [Argo CD - Plugins as Services](argocon-demos/2024-argocd-plugins-as-services)
 
 ## ArgoCon USA 2023
 * [Scaling to Thousands of Data and CI/CD Pipelines using Argo and Virtual Clusters](argocon-demos/2023-scaling-to-thousands-of-data-and-cicd-pipelines-using-argo-and-vcluster)
