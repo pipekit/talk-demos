@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: test
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: test
+    server: 'https://kubernetes.default.svc'
+  source:
+    path: cmd/argocd-lovely-plugin/test/helm_kustomize
+    repoURL: 'https://github.com/crumbhole/argocd-lovely-plugin.git'
+    targetRevision: HEAD
+    plugin:
+      name: lovely-aas
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - PrunePropagationPolicy=background
+      - CreateNamespace=true

@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: argocd
+
+resources:
+- 2.10.2.yaml
+- paas-clusterrole.yaml
+- paas-secret.yaml
+
+patches:
+- patch: |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: argocd-repo-server
+    spec:
+      template:
+        spec:
+          automountServiceAccountToken: true
+          containers:
+            - name: argocd-repo-server
+              image: joibel/argocd:latest
+              volumeMounts:
+                - mountPath: /home/argocd/cmp-server/secrets/secret
+                  name: auth-secret
+                  subPath: secret
+          volumes:
+            - name: auth-secret
+              secret:
+                defaultMode: 420
+                secretName: paas

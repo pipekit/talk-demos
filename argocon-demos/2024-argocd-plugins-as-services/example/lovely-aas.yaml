@@ -1,0 +1,51 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lovely
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/plugin: "true"
+spec:
+  ports:
+  - name: cmp
+    port: 8080
+    protocol: TCP
+    targetPort: cmp
+  selector:
+    k8s-app: lovely-aas
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    k8s-app: lovely-aas
+  name: lovely
+  namespace: argocd
+spec:
+  selector:
+    matchLabels:
+      k8s-app: lovely-aas
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        k8s-app: lovely-aas
+    spec:
+      containers:
+      - name: lovely-aas
+        image: joibel/lovely-aas:latest
+        ports:
+        - containerPort: 8080
+          name: cmp
+          protocol: TCP
+        volumeMounts:
+          - name: auth-secret
+            mountPath: /home/argocd/cmp-server/config/secret
+            subPath: secret
+      volumes:
+        - name: auth-secret
+          secret:
+            secretName: paas
