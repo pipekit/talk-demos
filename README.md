@@ -6,7 +6,7 @@ This repo contains demos from ArgoCon and Open Source Summit.
 * [Mastering Argo Workflows at Scale: A Practical Guide to Scalability Excellence](argocon-demos/2024-mastering-argo-workflows-at-scale)
 * [Orchestrating Python Functions Natively in Argo Using Hera](argocon-demos/2024-orchestrating-python-functions-natively-with-hera)
 * [Panel: Argo for ML: Achieving Scalability and User Experience](https://youtu.be/Gldnvmn3dSQ)
-* [Demystifying Argo Workflows: An Architectural Deep Dive](https://youtu.be/FBRMURQYbgw)
+* [Demystifying Argo Workflows: An Architectural Deep Dive](argocon-demos/2024-demystifying-argo-workflows-an-architectural-deep-dive)
 * [Scaling Cloud-Native CI/CD with Jenkins and the Argo Projects](https://youtu.be/7uWiTS85dKc)
 * [Argo CD - Plugins as Services](argocon-demos/2024-argocd-plugins-as-services)
 
