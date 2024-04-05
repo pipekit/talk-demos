@@ -1,4 +1,4 @@
-# Mastering Argo Workflows at Scale: A Practical Guide to Scalability Excellence
+# Argo CD Plugins as Services
 
 [![Pipekit Logo](https://raw.githubusercontent.com/pipekit/talk-demos/main/assets/images/pipekit-logo.png)](https://pipekit.io?utm_campaign=talk-demos)
 
