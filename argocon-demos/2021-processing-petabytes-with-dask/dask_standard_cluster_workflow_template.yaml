@@ -155,8 +155,8 @@ spec:
         }
       container:
         image: "{{inputs.parameters.image}}"
-        imagePullPolicy: "Always"
-        args: ["dask-scheduler", "--idle-timeout=300"]
+        imagePullPolicy: "Never"
+        args: ["dask", "scheduler", "--idle-timeout=300"]
         env:
           - name: PYTHONPATH
             value: "{{inputs.parameters.pipeline-dir}}"
@@ -196,7 +196,7 @@ spec:
         }
       container:
         image: "{{inputs.parameters.image}}"
-        imagePullPolicy: "Always"
+        imagePullPolicy: "Never"
         args:
           [
             "python",
@@ -248,6 +248,7 @@ spec:
                 containers:
                 - name: dask-worker-{{workflow.name}}
                   image: {{inputs.parameters.image}}
+                  imagePullPolicy: "Never"
                   workingDir: {{inputs.parameters.pipeline-dir}}
                   resources:
                     requests:
@@ -257,7 +258,8 @@ spec:
                       memory: "{{inputs.parameters.worker-mem-gb}}Gi"
                       cpu: "{{inputs.parameters.worker-mcpu}}m"
                   args:
-                    - "dask-worker"
+                    - "dask"
+                    - "worker"
                     - "{{inputs.parameters.scheduler-ip}}:8786"
                     - "--nthreads={{inputs.parameters.worker-n-threads}}"
                     - "--death-timeout=60"

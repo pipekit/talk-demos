@@ -1,4 +1,4 @@
-FROM python:3.8.8-buster
+FROM python:3.12.7-slim
 LABEL authors="D. Severin Ryberg, JP Zivalich"
 LABEL contact="s.ryberg@accure.net, jp@pipekit.io"
 LABEL description="Deployable image for simple Dask workflow execution"
@@ -16,11 +16,4 @@ COPY dask_pipeline.py ${PACKAGE_DIR}/dask_pipeline.py
 
 WORKDIR ${PACKAGE_DIR}
 
-# Allows Docker/Kubernetes to access an arbitrary executable (also with venv activation)
-RUN cd / && \
-    echo \
-    "#!/bin/bash\
-    exec \"\$@\"" | sed 's/   */\n/g' > entrypoint.sh \
-    && chmod +x entrypoint.sh
-
-ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
+CMD ["/bin/bash", "/entrypoint.sh"]

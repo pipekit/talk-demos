@@ -3,3 +3,4 @@ dask-worker-space
 *.ipynb
 .DS_Store
 .idea
+.venv

@@ -4,10 +4,10 @@
 
 ## Goal of this repository
 
-* Showcase the combination of Dask and Argo Workflows to dynamically scale a compuational workload
-* Provide a basic Argo-workflows installation applicable to a production-grade kubernetes clusters
+* Showcase the combination of Dask and Argo Workflows to dynamically scale a computational workload
+* Provide a basic Argo-workflows installation applicable to production-grade kubernetes clusters
     - The set-up has been tested on AWS EKS, and would likely work for similar kubernetes providers
-    - The set-up will almost certainly NOT work for a local kubernetes installation, such as that with docker desktop or k3s
+    - The set-up _might_ work for a local kubernetes installation, such as that with docker desktop or k3s (tested on an M3 Pro Mac with 18GB RAM)
 * Package a Dask data pipeline into a docker container
 * Create an argo workflows WorkflowTemplate and related resources required to scale out the Dask pipeline in kubernetes
 
@@ -26,6 +26,15 @@ This project includes a Dask data pipeline which showcases a simple set-up of th
     - Returns that city's name
 * Counts the observations where each city had the fastest windspeed
 * Reports the city which is most often the windiest
+
+
+## Installing and Running on Local Docker Desktop
+
+With `kubectl` installed and Docker Desktop running with Kubernetes enabled:
+
+1. Run `make install`
+2. Go to `http://localhost:2746/workflow-templates/customer/windy-city`
+3. Click `Submit`
 
 ---
 
