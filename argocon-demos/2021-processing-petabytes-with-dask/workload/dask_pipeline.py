@@ -41,7 +41,7 @@ def pipeline(cluster_address: str, max_timestamps: int = 500):
     IP address (`cluster_address`) for a pre-existing dask cluster"""
     # Create a dask client
     client = Client(address=cluster_address)
-    client.wait_for_workers(n_workers=0, timeout=600)
+    client.wait_for_workers(n_workers=1, timeout=600)
 
     # Get a list of all timestamps to evaluate
     timestamps = pd.read_csv(DATADIR / "timestamps.csv").dt_iso
