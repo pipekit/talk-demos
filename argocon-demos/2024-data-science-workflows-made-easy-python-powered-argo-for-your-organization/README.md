@@ -6,7 +6,7 @@
 ## The talk
 <!-- The talk recording [can be found here](https://youtu.be/FBRMURQYbgw). -->
 
-<!-- The slide deck for this talk can be found [here](assets/slide-deck.pdf).  -->
+The slide deck for this talk can be found [here](assets/slide-deck.pdf).
 
 
 ---
