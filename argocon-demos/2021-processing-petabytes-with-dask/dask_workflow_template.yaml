@@ -45,7 +45,7 @@ spec:
                 - name: pipeline
                   value: "dask_pipeline.py"
                 - name: image
-                  value: "pipekit13/argocon21_dask:0.0.4"
+                  value: "local-docker/argocon21_dask:latest"
                 - name: scheduler-mcpu
                   value: "1000"
                 - name: scheduler-mem-gb
