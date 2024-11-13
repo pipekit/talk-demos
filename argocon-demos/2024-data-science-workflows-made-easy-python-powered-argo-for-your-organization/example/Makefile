@@ -1,16 +1,17 @@
 .PHONY: run-offline
 run-offline:
-	python -m ds_blog
+	poetry run -m ds_blog
 
 .PHONY: run
 run:
 	@poetry export --without-hashes --without-urls > requirements.txt
 	@docker build . -t ds-blog:v1
-	python -m ds_blog
+	poetry run python -m ds_blog
 
-.PHONY: install-environment
-install-environment:
+.PHONY: install
+install:
 	@./install.sh
+	poetry install
 
 .PHONY: add-data
 add-data:  ## Minio must be port-forwarded before running

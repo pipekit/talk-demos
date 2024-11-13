@@ -14,9 +14,17 @@ The code used in the talk can be found in the [example folder](example), which
 is adapted from the Pipekit blog post
 [How To Get the Most out of Hera for Data Science](https://pipekit.io/blog/how-to-get-the-most-out-of-hera-for-data-science).
 
-1. Ensure [docker-desktop](https://www.docker.com/products/docker-desktop/) is running
-1. Run `make install-environment`
-1. Port forward the argo service and the minio service
+### Prerequisites
+
+* [docker-desktop](https://www.docker.com/products/docker-desktop/) with the
+  local Kubernetes cluster running to be able to install and run Argo Workflows locally
+* [Poetry](https://python-poetry.org/docs/#installation) to install and run
+  Python more easily
+
+### Running the example
+
+1. Run `make install`
+1. Port forward the argo service and the minio service (easiest with [k9s](https://k9scli.io/))
 1. Run `make add-data`
 1. Run `make run`
 1. See the workflow at the localhost web address printed to the console
