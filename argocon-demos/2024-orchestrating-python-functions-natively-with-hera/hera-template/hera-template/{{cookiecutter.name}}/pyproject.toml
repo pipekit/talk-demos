@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "{{cookiecutter.name}}"
+version = "0.0.0"
+description = ""
+authors = ["Flaviu Vadan <flaviuvadan@gmail.com>"]
+readme = "README.md"
+packages = [
+    { include = '{{cookiecutter.name}}', from = 'src' }
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+hera = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
