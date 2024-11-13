@@ -4,6 +4,7 @@ This repo contains demos from ArgoCon and Open Source Summit.
 
 ## ArgoCon USA 2024
 * [Dog Food Delight: How Argo Workflows Eats Its Own CI](argocon-demos/2024-dog-food-delight-how-argo-workflows-eats-its-own-ci)
+* [Untangling the Threads: Understanding Argo Workflows with Workflow Tracing](argocon-demos/2024-untangling-the-threads-understanding-argo-workflows-with-workflow-tracing)
 * [Data Science Workflows Made Easy: Python-Powered Argo for Your Organization](argocon-demos/2024-data-science-workflows-made-easy-python-powered-argo-for-your-organization)
 
 ## ArgoCon EU 2024
