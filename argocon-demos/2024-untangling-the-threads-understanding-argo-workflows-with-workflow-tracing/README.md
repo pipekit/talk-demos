@@ -5,7 +5,7 @@
 ## The talk
 The talk recording [can be found here](https://youtu.be/F0-D99NqBjs).
 
-The slide deck for this talk can be found [here](assets/slide-deck.pdf).
+The slide deck for this talk can be found [here](assets/untangling-the-threads.pdf).
 
 
 ---
