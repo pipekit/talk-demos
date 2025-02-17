@@ -2,6 +2,9 @@
 
 This repo contains demos from ArgoCon and Open Source Summit.
 
+## ArgoCon EU 2025
+* [Argo Workflow Templates: A Practical Deep Dive](argocon-demos/2025-argo-workflow-templates-a-practical-deep-dive)
+
 ## ArgoCon USA 2024
 * [Dog Food Delight: How Argo Workflows Eats Its Own CI](argocon-demos/2024-dog-food-delight-how-argo-workflows-eats-its-own-ci)
 * [Demystifying Argo Events: An Architectural Deep Dive](argocon-demos/2024-demystifying-argo-events-an-architectural-deep-dive)
