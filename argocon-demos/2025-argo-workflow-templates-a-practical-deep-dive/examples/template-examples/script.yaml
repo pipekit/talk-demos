@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: script-
+  namespace: workflows
+  annotations:
+    workflows.argoproj.io/description: >-
+      Demonstrates the Script template that generates a random integer and then prints it.
+      Also shows that the result of a Script template is automatically output as `.result`.
+    workflows.argoproj.io/maintainer: 'Pipekit Inc'
+    workflows.argoproj.io/maintainer_url: 'https://github.com/pipekit/talk-demos/argocon-demos/2025-argo-workflow-templates-a-practical-deep-dive'
+    workflows.argoproj.io/version: '>= 3.6.0'
+spec:
+  serviceAccountName: workflows
+  entrypoint: main
+  templates:
+    - name: main
+      dag:
+        tasks:
+          - name: gen-random-int
+            template: gen-random-int
+          - name: echo-output
+            template: echo-output
+            arguments:
+              parameters:
+                - name: result
+                  value: "{{tasks.gen-random-int.outputs.result}}"
+            depends: gen-random-int
+
+
+    - name: gen-random-int
+      script:
+        image: python:alpine3.6
+        command: [python]
+        source: |
+          import random
+          i = random.randint(1, 100)
+          print(i)
+
+
+    - name: echo-output
+      inputs:
+        parameters:
+          - name: result
+      container:
+        image: alpine:3.6
+        command: [echo]
+        args: ["{{inputs.parameters.result}}"]

@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argo-server
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - args:
+        - server
+        - --auth-mode=server
+        name: argo-server
+        env:
+          - name: BASE_HREF
+            value: /
+          - name: FIRST_TIME_USER_MODAL
+            value: "false"
+          - name: FEEDBACK_MODAL
+            value: "false"
+          - name: NEW_VERSION_MODAL
+            value: "false"
+          - name: ARGO_ARTIFACT_SERVER
+            value: "false"
+        resources:
+          requests:
+            cpu: 25m
+            memory: 200Mi
