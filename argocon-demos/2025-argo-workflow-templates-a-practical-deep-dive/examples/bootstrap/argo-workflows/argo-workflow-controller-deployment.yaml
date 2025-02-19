@@ -12,6 +12,8 @@ spec:
               value: "1s"
             - name: LEADER_ELECTION_DISABLE
               value: "true"
+            - name: ARGO_EXECUTOR_PLUGINS
+              value: "true"
           resources:
             requests:
               cpu: 50m

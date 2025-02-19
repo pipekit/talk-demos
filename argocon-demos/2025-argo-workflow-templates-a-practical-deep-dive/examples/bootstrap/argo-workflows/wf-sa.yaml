@@ -44,6 +44,7 @@ rules:
   - workflows/finalizers
   - workflowtasksets
   - workflowtasksets/finalizers
+  - workflowtasksets/status
   - workflowtaskresults
   - applications
   verbs:
@@ -175,3 +176,13 @@ kind: ServiceAccount
 metadata:
   name: workflows
   namespace: workflows
+secrets:
+- name: workflows
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: workflows
+  annotations:
+    kubernetes.io/service-account.name: workflows
+type: kubernetes.io/service-account-token
