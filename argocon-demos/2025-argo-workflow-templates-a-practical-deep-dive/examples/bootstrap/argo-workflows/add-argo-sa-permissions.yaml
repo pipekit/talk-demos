@@ -29,3 +29,30 @@ subjects:
 - kind: ServiceAccount
   name: argo
   namespace: argo
+---
+# Required for 3.5.5 for reasons as yet unknown
+# See https://github.com/argoproj/argo-workflows/issues/14211
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: argo-plugin-cluster-role-two
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: argo-plugin-binding-two
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: argo-plugin-cluster-role-two
+subjects:
+- kind: ServiceAccount
+  name: argo
+  namespace: argo
