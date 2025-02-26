@@ -18,6 +18,7 @@ kubectl create ns argo || true
 kubectl -n argo apply -k bootstrap/argo-workflows
 kubectl create ns workflows || true
 kubectl -n workflows apply -f bootstrap/argo-workflows/wf-sa.yaml
+kubectl -n workflows apply -k bootstrap/plugin
 
 kubectl wait -n argo deploy/argo-server --for condition=Available --timeout 2m >/dev/null
 kubectl wait -n argo deploy/workflow-controller --for condition=Available --timeout 2m >/dev/null

@@ -19,7 +19,7 @@ spec:
       resource:
         action: create # The serviceAccount used to run this workflow must have the necessary RBAC permissions to create the resource.
         setOwnerReference: true # This will set an owner reference on the created resource so that it is deleted when the workflow completes.
-        successCondition: status.containerStatuses[0].ready == true # This will wait until the resource is ready before continuing.
+        successCondition: status.phase == Running # This will wait until the pod has started running before continuing.
         manifest: |
           apiVersion: v1
           kind: Pod
@@ -36,4 +36,4 @@ spec:
                   - -c
                   - |
                     echo "Hello ArgoCon!"
-                    exit 0
+                    sleep 3600

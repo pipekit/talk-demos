@@ -43,6 +43,6 @@ spec:
         parameters:
           - name: result
       container:
-        image: alpine:3.6
+        image: alpine
         command: [echo]
         args: ["{{inputs.parameters.result}}"]

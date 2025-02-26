@@ -6,7 +6,7 @@ metadata:
   annotations:
     workflows.argoproj.io/description: >-
       Demonstrates the HTTP template that executes a HTTP request.
-      Note that due to https://github.com/argoproj/argo-workflows/issues/14211, you will need to remove the executor plugin configmap from your cluster before running this.
+      We run three http templates but you'll notice only one pod is created.
     workflows.argoproj.io/maintainer: 'Pipekit Inc'
     workflows.argoproj.io/maintainer_url: 'https://github.com/pipekit/talk-demos/argocon-demos/2025-argo-workflow-templates-a-practical-deep-dive'
     workflows.argoproj.io/version: '>= 3.6.0'
@@ -15,12 +15,18 @@ spec:
   entrypoint: main
   templates:
     - name: main
-      steps:
-        - - name: get-example-homepage
+      dag:
+        tasks:
+          - name: get-example-homepage
             template: http
+          - name: get-example-homepage-two
+            template: http
+            depends: get-example-homepage
+          - name: get-example-homepage-three
+            template: http
+            depends: get-example-homepage
     - name: http
       http:
-        timeoutSeconds: 20 # Default 30
         url: https://example.com/
         method: "GET" # Default GET
         # Template will succeed if evaluated to true, otherwise will fail
@@ -34,3 +40,8 @@ spec:
         #  response.headers: map[string][]string, the response headers
         # successCondition: "response.body contains \"google\"" # available since v3.3
         #body: "test body" # Change request body
+    - name: container
+      container:
+        image: alpine
+        command: [sh, -c]
+        args: ["echo hello world && sleep 1"]
