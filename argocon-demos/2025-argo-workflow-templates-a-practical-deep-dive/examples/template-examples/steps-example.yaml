@@ -27,6 +27,10 @@ spec:
                   value: "{{steps.gen-random-int.outputs.result}}"
           - name: containerset
             template: containerset
+            arguments:
+              parameters:
+                - name: hi
+                  value: "Hello ArgoCon!"
         - - name: suspend
             template: suspend
         - - name: get-example-homepage
@@ -55,6 +59,9 @@ spec:
         args: ["{{inputs.parameters.result}}"]
 
     - name: containerset
+      inputs:
+        parameters:
+          - name: hi
       volumes:
         - name: workspace
           emptyDir: { }
@@ -69,14 +76,14 @@ spec:
               - sh
               - -c
               - |
-                echo 'a: Hello ArgoCon!' >> /workspace/message
+                echo 'a: {{inputs.parameters.hi}}' >> /workspace/message
           - name: b
             image: alpine
             command:
               - sh
               - -c
               - |
-                echo 'b: Hello ArgoCon!' >> /workspace/message
+                echo 'b: {{inputs.parameters.hi}}' >> /workspace/message
             resources:
               requests:
                 memory: "40Mi"
@@ -87,7 +94,7 @@ spec:
               - sh
               - -c
               - |
-                echo 'main: Hello ArgoCon!' >> /workspace/message
+                echo 'main: {{inputs.parameters.hi}}' >> /workspace/message
             resources:
               requests:
                 memory: "20Mi"
