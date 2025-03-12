@@ -16,8 +16,21 @@ spec:
     parameters:
       - name: message
         value: Hello ArgoCon!
-  entrypoint: hello
+  entrypoint: main
   templates:
+    - name: main
+      dag:
+        tasks:
+          - name: hello
+            template: hello
+          - name: echo-output
+            template: echo-output
+            arguments:
+              parameters:
+                - name: result
+                  value: "{{tasks.hello.outputs.result}}"
+            depends: hello
+
     - name: hello
       inputs:
         parameters:
@@ -44,3 +57,12 @@ spec:
           requests:
             memory: "32Mi"
             cpu: "100m"
+
+    - name: echo-output
+      inputs:
+        parameters:
+          - name: result
+      container:
+        image: alpine
+        command: [echo]
+        args: ["{{inputs.parameters.result}}"]
