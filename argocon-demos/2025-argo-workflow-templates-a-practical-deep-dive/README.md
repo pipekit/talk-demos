@@ -1,5 +1,4 @@
-# Argo Workflow Templtes: A Practical Deep Dive
-
+# Argo Workflow Templates: A Practical Deep Dive
 [![Pipekit Logo](https://raw.githubusercontent.com/pipekit/talk-demos/main/assets/images/pipekit-logo.png)](https://pipekit.io?utm_campaign=talk-demos)
 
 
