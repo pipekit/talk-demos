@@ -33,6 +33,7 @@ We have created a series of example workflows that uses each of the templates we
 ### Cleanup
 
 To remove the k3d cluster and the Argo Workflows, run `k3d cluster delete template-examples`.
+
 ---
 
 ## About Pipekit
