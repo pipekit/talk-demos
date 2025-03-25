@@ -1,0 +1,39 @@
+# This file describes the config settings available in the workflow controller configmap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: workflow-controller-configmap
+data:
+  executor: |
+    resources:
+      requests:
+        cpu: 200m
+        memory: 128Mi
+
+  mainContainer: |
+    resources:
+      requests:
+        cpu: 20m
+        memory: 20Mi
+
+  metricsConfig: |
+    enabled: false
+    secure: false
+
+  # Default values that will apply to all Workflows from this controller, unless overridden on the Workflow-level
+  # See more: docs/default-workflow-specs.md
+  workflowDefaults: |
+    spec:
+      # Time out after 1h
+      activeDeadlineSeconds: 3600
+      # Delete (archive) workflows after 1h
+      ttlStrategy:
+        secondsAfterCompletion: 3600
+      volumeClaimGC:
+        strategy: OnWorkflowCompletion
+      podGC:
+        strategy: OnPodSuccess
+        deleteDelayDuration: 120s
+      retryStrategy:
+        retryPolicy: OnError
+        limit: 3

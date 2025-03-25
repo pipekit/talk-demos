@@ -1,0 +1,161 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: steps-
+  namespace: workflows
+  annotations:
+    workflows.argoproj.io/description: >-
+      A workflow that demonstrates how to use steps to call multiple templates of different types.
+      The workflow itself doesn't make a lot of sense, but you can see the different types all being called within the same workflow.
+      This should be very similar in output to `dag-example.yaml`.
+    workflows.argoproj.io/maintainer: 'Pipekit Inc'
+    workflows.argoproj.io/maintainer_url: 'https://github.com/pipekit/talk-demos/argocon-demos/2025-argo-workflow-templates-a-practical-deep-dive'
+    workflows.argoproj.io/version: '>= 3.6.0'
+spec:
+  serviceAccountName: workflows
+  entrypoint: main
+  templates:
+    - name: main
+      steps:
+        - - name: gen-random-int
+            template: gen-random-int
+        - - name: echo-output
+            template: echo-output
+            arguments:
+              parameters:
+                - name: result
+                  value: "{{steps.gen-random-int.outputs.result}}"
+          - name: containerset
+            template: containerset
+            arguments:
+              parameters:
+                - name: hi
+                  value: "Hello ArgoCon!"
+        - - name: suspend
+            template: suspend
+        - - name: get-example-homepage
+            template: http
+          - name: plugin
+            template: plugin
+          - name: resource
+            template: resource
+
+    - name: gen-random-int
+      script:
+        image: python:alpine
+        command: [python]
+        source: |
+          import random
+          i = random.randint(1, 100)
+          print(i)
+
+    - name: echo-output
+      inputs:
+        parameters:
+          - name: result
+      container:
+        image: alpine
+        command: [echo]
+        args: ["{{inputs.parameters.result}}"]
+
+    - name: containerset
+      inputs:
+        parameters:
+          - name: hi
+      volumes:
+        - name: workspace
+          emptyDir: { }
+      containerSet:
+        volumeMounts:
+          - mountPath: /workspace
+            name: workspace
+        containers:
+          - name: a
+            image: alpine
+            command:
+              - sh
+              - -c
+              - |
+                echo 'a: {{inputs.parameters.hi}}' >> /workspace/message
+          - name: b
+            image: alpine
+            command:
+              - sh
+              - -c
+              - |
+                echo 'b: {{inputs.parameters.hi}}' >> /workspace/message
+            resources:
+              requests:
+                memory: "40Mi"
+                cpu: "40m"
+          - name: main
+            image: alpine
+            command:
+              - sh
+              - -c
+              - |
+                echo 'main: {{inputs.parameters.hi}}' >> /workspace/message
+            resources:
+              requests:
+                memory: "20Mi"
+                cpu: "20m"
+            dependencies:
+              - a
+              - b
+      outputs:
+        parameters:
+          - name: message
+            valueFrom:
+              path: /workspace/message
+
+    - name: http
+      http:
+        url: https://example.com/
+        method: "GET" # Default GET
+        # Template will succeed if evaluated to true, otherwise will fail
+        # Available variables:
+        #  request.body: string, the request body
+        #  request.headers: map[string][]string, the request headers
+        #  response.url: string, the request url
+        #  response.method: string, the request method
+        #  response.statusCode: int, the response status code
+        #  response.body: string, the response body
+        #  response.headers: map[string][]string, the response headers
+        # successCondition: "response.body contains \"google\"" # available since v3.3
+        #body: "test body" # Change request body
+    - name: container
+      container:
+        image: alpine
+        command: [sh, -c]
+        args: ["echo hello world && sleep 1"]
+
+    - name: resource
+      resource:
+        action: create # The serviceAccount used to run this workflow must have the necessary RBAC permissions to create the resource.
+        setOwnerReference: true # This will set an owner reference on the created resource so that it is deleted when the workflow completes.
+        successCondition: status.phase == Running # This will wait until the pod has started running before continuing.
+        manifest: |
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: hello-{{workflow.name}}
+            labels:
+              workflows.argoproj.io/workflow: "{{workflow.name}}" # This annotation associates this resource with your workflow so you can see the `hiya` container logs in the workflows UI
+          spec:
+            containers:
+              - name: hiya
+                image: alpine
+                command:
+                  - sh
+                  - -c
+                  - |
+                    echo "Hello ArgoCon!"
+                    sleep 3600
+
+    - name: suspend
+      suspend:
+        duration: "20" # Must be a string. Default unit is seconds. Could also be a Duration, e.g.: "2m", "6h"
+
+    - name: plugin
+      plugin:
+        hello: { }

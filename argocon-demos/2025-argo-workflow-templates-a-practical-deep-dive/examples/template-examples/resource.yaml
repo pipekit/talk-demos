@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: resource-
+  namespace: workflows
+  annotations:
+    workflows.argoproj.io/description: >-
+      Demonstrates the Resource template that creates Kubernetes resources.
+      Shows how you can get Pod logs from resources into your Workflows logs.
+      Shows how you can set an owner reference on the created resources so that it is deleted when the workflow completes.
+    workflows.argoproj.io/maintainer: 'Pipekit Inc'
+    workflows.argoproj.io/maintainer_url: 'https://github.com/pipekit/talk-demos/argocon-demos/2025-argo-workflow-templates-a-practical-deep-dive'
+    workflows.argoproj.io/version: '>= 3.6.0'
+spec:
+  serviceAccountName: workflows
+  entrypoint: hello
+  templates:
+    - name: hello
+      resource:
+        action: create # The serviceAccount used to run this workflow must have the necessary RBAC permissions to create the resource.
+        setOwnerReference: true # This will set an owner reference on the created resource so that it is deleted when the workflow completes.
+        successCondition: status.phase == Running # This will wait until the pod has started running before continuing.
+        manifest: |
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: hello-{{workflow.name}}
+            labels:
+              workflows.argoproj.io/workflow: "{{workflow.name}}" # This annotation associates this resource with your workflow so you can see the `hiya` container logs in the workflows UI
+          spec:
+            containers:
+              - name: hiya
+                image: alpine
+                command:
+                  - sh
+                  - -c
+                  - |
+                    echo "Hello ArgoCon!"
+                    sleep 3600

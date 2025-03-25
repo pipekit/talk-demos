@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: inline-
+  namespace: workflows
+  annotations:
+    workflows.argoproj.io/description: >-
+      Demonstrates the Inline template invocator within a DAG
+    workflows.argoproj.io/maintainer: 'Pipekit Inc'
+    workflows.argoproj.io/maintainer_url: 'https://github.com/pipekit/talk-demos/argocon-demos/2025-argo-workflow-templates-a-practical-deep-dive'
+    workflows.argoproj.io/version: '>= 3.6.0'
+spec:
+  serviceAccountName: workflows
+  arguments:
+    parameters:
+      - name: message
+        value: Hello ArgoCon!
+  entrypoint: main
+  templates:
+    - name: main
+      dag:
+        tasks:
+          - name: a
+            inline:
+              container:
+                image: alpine
+                command:
+                  - sh
+                  - -c
+                  - |
+                    echo "{{workflow.parameters.message}}"
+
