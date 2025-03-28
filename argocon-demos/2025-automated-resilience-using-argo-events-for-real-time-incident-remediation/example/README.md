@@ -7,27 +7,30 @@
 - Argo Events with event bus
 
 ## Setup
-Note: namespaces are hardcoded in the example files. You can change them if you want to use different namespaces.
-- Add sensor and sensor rbac
+Notes: 
+- namespaces are hardcoded in the example files. You can change them if you want to use different namespaces.
+- this is a demo, don't run it in production.
+
+1. Add sensor and sensor rbac
 ```commandline
 kubectl apply -f example/sensor-wf.yaml
 kubectl apply -f example/sensor-rbac.yaml
 ```
-- Add event source
+2. Add event source
 ```commandline
 kubectl apply -f example/webhook.yaml
 ```
-- Add workflow rbac
+3. Add workflow rbac
 ```commandline
 kubectl apply -f example/workflow-rbac.yaml
 ```
-- Add worker pod in default namespace
+4. Add worker pod in default namespace
 ```commandline
 kubectl apply -f example/worker.yaml
 ```
 
 ## How to run the demo
-Bellow is an example of a webhook payload that can be sent to the Argo Events sensor. This payload simulates a scenario where a pod is using excessive CPU resources, which could indicate a potential crypto miner. You can use a tool like `curl` or Postman to send this payload to the webhook endpoint configured in the Argo Events sensor.
+Below is an example of a webhook payload that can be sent to the Argo Events sensor. This payload simulates a scenario where a pod is using excessive CPU resources, which could indicate a potential crypto miner. You can use a tool like `curl` or Postman to send this payload to the webhook endpoint configured in the Argo Events sensor.
 
 ```json
 {
