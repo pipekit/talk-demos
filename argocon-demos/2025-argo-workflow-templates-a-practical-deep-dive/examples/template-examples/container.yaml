@@ -1,0 +1,68 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: container-
+  namespace: workflows
+  annotations:
+    workflows.argoproj.io/description: >-
+      Demonstrates the Container template that runs a simple echo command.
+      Shows that the container template conforms to the Kubernetes container spec (https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#Container).
+    workflows.argoproj.io/maintainer: 'Pipekit Inc'
+    workflows.argoproj.io/maintainer_url: 'https://github.com/pipekit/talk-demos/argocon-demos/2025-argo-workflow-templates-a-practical-deep-dive'
+    workflows.argoproj.io/version: '>= 3.6.0'
+spec:
+  serviceAccountName: workflows
+  arguments:
+    parameters:
+      - name: message
+        value: Hello ArgoCon!
+  entrypoint: main
+  templates:
+    - name: main
+      dag:
+        tasks:
+          - name: hello
+            template: hello
+          - name: echo-output
+            template: echo-output
+            arguments:
+              parameters:
+                - name: result
+                  value: "{{tasks.hello.outputs.result}}"
+            depends: hello
+
+    - name: hello
+      inputs:
+        parameters:
+          - name: message
+            value: "{{workflow.parameters.message}}"
+      container:
+        name: main
+        image: alpine
+        command:
+          - sh
+          - -c
+          - |
+            echo "{{inputs.parameters.message}}"
+            echo "$ARGO"
+        env:
+          - name: ARGO
+            value: workflows
+        securityContext:
+          seccompProfile:
+            type: Unconfined
+          runAsUser: 1000
+          runAsGroup: 1000
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "100m"
+
+    - name: echo-output
+      inputs:
+        parameters:
+          - name: result
+      container:
+        image: alpine
+        command: [echo]
+        args: ["{{inputs.parameters.result}}"]

@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workflow-controller-patch
+spec:
+  template:
+    spec:
+      containers:
+        - name: workflow-controller
+          env:
+            - name: DEFAULT_REQUEUE_TIME
+              value: "1s"
+            - name: LEADER_ELECTION_DISABLE
+              value: "true"
+            - name: ARGO_EXECUTOR_PLUGINS
+              value: "true"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 100Mi

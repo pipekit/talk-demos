@@ -1,0 +1,61 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: containerset-
+  namespace: workflows
+  annotations:
+    workflows.argoproj.io/description: >-
+      Demonstrates the Container Set template that runs many containers in one pod.
+    workflows.argoproj.io/maintainer: 'Pipekit Inc'
+    workflows.argoproj.io/maintainer_url: 'https://github.com/pipekit/talk-demos/argocon-demos/2025-argo-workflow-templates-a-practical-deep-dive'
+    workflows.argoproj.io/version: '>= 3.6.0'
+spec:
+  serviceAccountName: workflows
+  entrypoint: main
+  templates:
+    - name: main
+      volumes:
+        - name: workspace
+          emptyDir: { }
+      containerSet:
+        volumeMounts:
+          - mountPath: /workspace
+            name: workspace
+        containers:
+          - name: a
+            image: alpine
+            command:
+              - sh
+              - -c
+              - |
+                echo 'a: Hello ArgoCon!' >> /workspace/message
+          - name: b
+            image: alpine
+            command:
+              - sh
+              - -c
+              - |
+                echo 'b: Hello ArgoCon!' >> /workspace/message
+            resources:
+              requests:
+                memory: "40Mi"
+                cpu: "40m"
+          - name: main
+            image: alpine
+            command:
+              - sh
+              - -c
+              - |
+                echo 'main: Hello ArgoCon!' >> /workspace/message
+            resources:
+              requests:
+                memory: "20Mi"
+                cpu: "20m"
+            dependencies:
+              - a
+              - b
+      outputs:
+        parameters:
+          - name: message
+            valueFrom:
+              path: /workspace/message
