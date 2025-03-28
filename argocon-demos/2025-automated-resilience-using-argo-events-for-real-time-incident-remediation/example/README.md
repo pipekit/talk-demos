@@ -1,53 +1,34 @@
+# Demo
 
+## Prerequisites
+- Kubernetes cluster
+- kubectl
+- Argo Workflows
+- Argo Events with event bus
 
-###
-- Move to assets folder
+## Setup
+Note: namespaces are hardcoded in the example files. You can change them if you want to use different namespaces.
+- Add sensor and sensor rbac
 ```commandline
-cd argocon-demos/2025-automated-resilience-using-argo-events-for-real-time-incident-remediation/assets
+kubectl apply -f example/sensor-wf.yaml
+kubectl apply -f example/sensor-rbac.yaml
+```
+- Add event source
+```commandline
+kubectl apply -f example/webhook.yaml
+```
+- Add workflow rbac
+```commandline
+kubectl apply -f example/workflow-rbac.yaml
+```
+- Add worker pod in default namespace
+```commandline
+kubectl apply -f example/worker.yaml
 ```
 
-- install argo workflows
-```commandline
-ARGO_WORKFLOWS_VERSION="v3.6.5"
-kubectl create namespace argo
-kubectl apply -n argo -f "https://github.com/argoproj/argo-workflows/releases/download/${ARGO_WORKFLOWS_VERSION}/quick-start-minimal.yaml"
-```
+## How to run the demo
+Bellow is an example of a webhook payload that can be sent to the Argo Events sensor. This payload simulates a scenario where a pod is using excessive CPU resources, which could indicate a potential crypto miner. You can use a tool like `curl` or Postman to send this payload to the webhook endpoint configured in the Argo Events sensor.
 
-- install argo events
-```commandline
-kubectl create namespace argo-events
-kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-events/stable/manifests/install.yaml
-kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-events/stable/manifests/install-validating-webhook.yaml
-kubectl apply -n argo-events -f https://raw.githubusercontent.com/argoproj/argo-events/stable/examples/eventbus/native.yaml
-```
-
-- create webhook
-```commandline
-kubectl apply -n argo-events -f webhook.yaml
-```
-
-- apply sensor rbac
-```commandline
-kubectl apply -n argo-events -f sensor-rbac.yaml
-```
-
-- apply workflow rbac
-```commandline
-kubectl apply -n argo -f workflow-rbac.yaml
-```
-
-- apply sensor
-```commandline
-kubectl apply -n argo-events -f sensor-wf.yaml
-```
-
-- add worker pod in default namespace
-```commandline
-kubectl apply -f worker.yaml
-```
-
-
-curl -d '{"receiver":"webhook","status":"firing","alerts":[{"status":"firing","labels":{"alertname":"CryptoMinerDetected","severity":"critical","instance":"docker-desktop","job":"kubernetes-nodes","namespace":"default","pod":"worker","container":"ubuntu","reason":"High_CPU_Usage","threshold":"90"},"annotations":{"summary":"Potential crypto miner detected","description":"Pod suspicious-pod in namespace default is using 95% CPU, exceeding the 90% threshold. This may indicate unauthorized crypto mining.","recommended_action":"Investigate the pod and consider isolating it."},"startsAt":"2025-03-18T10:00:00Z","endsAt":"0001-01-01T00:00:00Z","generatorURL":"http://prometheus.local/graph?g0.expr=rate(container_cpu_usage_seconds_total[5m])>0.9","fingerprint":"abc123"}],"groupLabels":{"alertname":"CryptoMinerDetected"},"commonLabels":{"alertname":"CryptoMinerDetected","severity":"critical"},"commonAnnotations":{"summary":"Potential crypto miner detected","description":"Pod suspicious-pod-xyz in namespace default is using 95% CPU, exceeding the 90% threshold. This may indicate unauthorized crypto mining."},"externalURL":"http://alertmanager.local","version":"4","groupKey":"{}:{alertname=\"CryptoMinerDetected\"}"}' -H "Content-Type: application/json" -X POST http://localhost:12000/notify -H "Authorization: Bearer test"
 ```json
 {
   "receiver": "webhook",
@@ -92,4 +73,9 @@ curl -d '{"receiver":"webhook","status":"firing","alerts":[{"status":"firing","l
   "version": "4",
   "groupKey": "{}:{alertname=\"CryptoMinerDetected\"}"
 }
+```
+
+#### curl example:
+```commandline
+curl -d '{"receiver":"webhook","status":"firing","alerts":[{"status":"firing","labels":{"alertname":"CryptoMinerDetected","severity":"critical","instance":"docker-desktop","job":"kubernetes-nodes","namespace":"default","pod":"worker","container":"ubuntu","reason":"High_CPU_Usage","threshold":"90"},"annotations":{"summary":"Potential crypto miner detected","description":"Pod suspicious-pod in namespace default is using 95% CPU, exceeding the 90% threshold. This may indicate unauthorized crypto mining.","recommended_action":"Investigate the pod and consider isolating it."},"startsAt":"2025-03-18T10:00:00Z","endsAt":"0001-01-01T00:00:00Z","generatorURL":"http://prometheus.local/graph?g0.expr=rate(container_cpu_usage_seconds_total[5m])>0.9","fingerprint":"abc123"}],"groupLabels":{"alertname":"CryptoMinerDetected"},"commonLabels":{"alertname":"CryptoMinerDetected","severity":"critical"},"commonAnnotations":{"summary":"Potential crypto miner detected","description":"Pod suspicious-pod-xyz in namespace default is using 95% CPU, exceeding the 90% threshold. This may indicate unauthorized crypto mining."},"externalURL":"http://alertmanager.local","version":"4","groupKey":"{}:{alertname=\"CryptoMinerDetected\"}"}' -H "Content-Type: application/json" -X POST http://localhost:12000/notify -H "Authorization: Bearer test"
 ```
