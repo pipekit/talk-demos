@@ -74,10 +74,14 @@ spec:
                           artifacts:
                             - name: pod-logs
                               path: /tmp/pod-logs
+                              archive:
+                                none: {}
                               s3:
                                 key: "{{workflow.parameters.pod}}-logs"
                             - name: pod-description
                               path: /tmp/pod-description
+                              archive:
+                                none: {}
                               s3:
                                 key: "{{workflow.parameters.pod}}-description"
                           parameters:
