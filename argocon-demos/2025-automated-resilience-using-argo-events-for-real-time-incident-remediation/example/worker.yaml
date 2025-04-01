@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: worker
+spec:
+  containers:
+    - name: ubuntu
+      image: ubuntu:latest
+      command: [ "/bin/bash", "-c", "--" ]
+      args: [ "echo hello; while true; do sleep 30; done;" ]

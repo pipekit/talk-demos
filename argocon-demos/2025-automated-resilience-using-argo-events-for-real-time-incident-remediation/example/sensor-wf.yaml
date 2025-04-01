@@ -1,0 +1,160 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: webhook-sensor
+spec:
+  template:
+    serviceAccountName: operate-workflow-sa
+  dependencies:
+    - name: webhook-dep
+      eventSourceName: webhook
+      eventName: notify
+      transform:
+        script: |-
+          local json = {
+            pod = event.body.alerts[1].labels.pod,
+            namespace = event.body.alerts[1].labels.namespace,
+            instance = event.body.alerts[1].labels.instance,
+            container = event.body.alerts[1].labels.container
+          }
+          event.body = json
+          return event
+  triggers:
+    - template:
+        name: webhook-workflow-trigger
+        k8s:
+          operation: create
+          source:
+            resource:
+                  apiVersion: argoproj.io/v1alpha1
+                  kind: Workflow
+                  metadata:
+                    generateName: security-response-
+                    namespace: argo
+                  spec:
+                    entrypoint: main
+                    arguments:
+                      parameters:
+                        - name: pod
+                        - name: namespace
+                        - name: instance
+                        - name: container
+                    templates:
+                      - name: main
+                        steps:
+                          - - name: capture-pod-data
+                              template: capture-data
+                          - - name: isolate-pod
+                              template: isolate
+                          - - name: scan-image
+                              template: image-scan
+                              arguments:
+                                parameters:
+                                  - name: image
+                                    value: "{{steps.capture-pod-data.outputs.parameters.image}}"
+                          - - name: notify-team
+                              template: notify
+                          - - name: escalate
+                              template: escalate
+                              when: "{{steps.scan-image.status}} != Succeeded"
+                          - - name: cordon-node
+                              template: cordon-node
+
+                      - name: capture-data
+                        container:
+                          image: bitnami/kubectl
+                          command: [ "sh", "-c" ]
+                          args:
+                            - |
+                              kubectl -n {{workflow.parameters.namespace}} logs {{workflow.parameters.pod}} > /tmp/pod-logs
+                              kubectl -n {{workflow.parameters.namespace}} describe pod {{workflow.parameters.pod}} > /tmp/pod-description
+                              kubectl -n {{workflow.parameters.namespace}} get pod {{workflow.parameters.pod}} -o jsonpath='{.spec.containers[?(@.name=="{{workflow.parameters.container}}")].image}' > /tmp/image
+                              echo "Pod data captured."
+                        outputs:
+                          artifacts:
+                            - name: pod-logs
+                              path: /tmp/pod-logs
+                              archive:
+                                none: {}
+                              s3:
+                                key: "{{workflow.parameters.pod}}-logs"
+                            - name: pod-description
+                              path: /tmp/pod-description
+                              archive:
+                                none: {}
+                              s3:
+                                key: "{{workflow.parameters.pod}}-description"
+                          parameters:
+                            - name: image
+                              valueFrom:
+                                path: /tmp/image
+
+
+                      - name: isolate
+                        resource:
+                          action: create
+                          manifest: |
+                            apiVersion: networking.k8s.io/v1
+                            kind: NetworkPolicy
+                            metadata:
+                              name: isolate-{{workflow.parameters.pod}}
+                              namespace: {{workflow.parameters.namespace}}
+                            spec:
+                              podSelector:
+                                matchLabels:
+                                  name: {{workflow.parameters.pod}}
+                              policyTypes:
+                              - Ingress
+                              - Egress
+                              ingress: []
+                              egress: []
+
+                      - name: image-scan
+                        inputs:
+                          parameters:
+                            - name: image
+                        container:
+                          image: aquasec/trivy
+                          command: [ "trivy" ]
+                          args: [ "image", "{{inputs.parameters.image}}" ]
+
+                      - name: notify
+                        script:
+                          image: ghcr.io/tico24/whalesay
+                          command: [ cowsay ]
+                          args: ["Notifying users of suspicious pod {{workflow.parameters.pod}}."]
+
+                      - name: escalate
+                        script:
+                          image: ghcr.io/tico24/whalesay
+                          command: [ cowsay ]
+                          args: ["Notifying on-call persons of suspicious pod {{workflow.parameters.pod}}."]
+
+                      - name: cordon-node
+                        resource:
+                          action: patch
+                          manifest: |
+                            apiVersion: v1
+                            kind: Node
+                            metadata:
+                              name: {{workflow.parameters.instance}}
+                            spec:
+                              unschedulable: true
+
+          parameters:
+            - src:
+                dependencyName: webhook-dep
+                dataTemplate: "{{ .Input.body.pod }}"
+              dest: spec.arguments.parameters.0.value
+            - src:
+                dependencyName: webhook-dep
+                dataTemplate: "{{ .Input.body.namespace }}"
+              dest: spec.arguments.parameters.1.value
+            - src:
+                dependencyName: webhook-dep
+                dataTemplate: "{{ .Input.body.instance }}"
+              dest: spec.arguments.parameters.2.value
+            - src:
+                dependencyName: webhook-dep
+                dataTemplate: "{{ .Input.body.container }}"
+              dest: spec.arguments.parameters.3.value
