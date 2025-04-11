@@ -4,7 +4,7 @@
 
 ## The talk
 
-The talk recording [can be found here](https://youtu.be/OG3jA50GpZc).
+The talk recording [can be found here](https://youtu.be/SNWuSWH5GjU).
 
 The slide deck for this talk can be found [here](assets/Automated%20Resilience_%20Using%20Argo%20Events%20for%20Real-Time%20Incident%20Remediation.pdf).
 

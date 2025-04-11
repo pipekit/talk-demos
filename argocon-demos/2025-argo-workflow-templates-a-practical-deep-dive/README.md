@@ -4,7 +4,7 @@
 
 
 ## The talk
-The talk recording [can be found here](https://youtu.be/zyIENTh8tLg).
+The talk recording [can be found here](https://youtu.be/0QeYA6_9cOg).
 
 The slide deck for this talk can be found [here](assets/slide-deck.pdf).
 
