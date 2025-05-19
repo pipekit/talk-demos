@@ -260,7 +260,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, roc_curve, roc_auc_score
+import matplotlib.pyplot as plt
 
 # Load dataset
 data = pd.read_csv('diabetes.csv')
@@ -321,9 +322,9 @@ weighted avg       0.76      0.75      0.75       154
 ```
 
 To get this working on Argo Workflows we'll need to recreate the code in functions for each part of the pipeline. We
-will also need to build an image from the code with dependencies (`hera`, `pandas` and `scikit-learn`) installed, and
-we'll need an S3 or other Argo-compatible cloud storage mechanism, so that Argo Workflows can automatically fetch the
-data for us.
+will also need to build an image from the code with dependencies (`hera`, `pandas`, `scikit-learn` and `matplotlib`)
+installed, and we'll need an S3 or other Argo-compatible cloud storage mechanism, so that Argo Workflows can
+automatically fetch the data for us.
 
 ### Adding Hera Components
 
