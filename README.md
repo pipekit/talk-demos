@@ -2,6 +2,9 @@
 
 This repo contains demos from ArgoCon and Open Source Summit.
 
+## ArgoCon EU 2026
+* [Don't Do What Donny Don't Does: The 10 Dos and 500 Don'ts of Workflows Success](argocon-demos/2026-dont-do-what-donny-dont-does-the-10-dos-and-500-donts-of-workflows-success)
+
 ## ArgoCon EU 2025
 * [Argo Workflow Templates: A Practical Deep Dive](argocon-demos/2025-argo-workflow-templates-a-practical-deep-dive)
 * [Automated Resilience: Using Argo Events for Real-Time Incident Remediation](argocon-demos/2025-automated-resilience-using-argo-events-for-real-time-incident-remediation)
