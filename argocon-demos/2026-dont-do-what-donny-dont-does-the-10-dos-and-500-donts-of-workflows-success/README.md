@@ -4,9 +4,9 @@
 
 
 <!-- ## The talk
-The talk recording [can be found here](https://youtu.be/0QeYA6_9cOg).
+The talk recording [can be found here](https://youtu.be/0QeYA6_9cOg).-->
 
-The slide deck for this talk can be found [here](assets/slide-deck.pdf). -->
+The slide deck for this talk can be found [here](assets/slide-deck.pdf).
 
 ## The Dos and Don'ts
 - Do remember the architecture
@@ -19,7 +19,7 @@ The slide deck for this talk can be found [here](assets/slide-deck.pdf). -->
 - Do check defaults in the workflow-controller-configmap
 - Do keep things tidy
 - Do check your versions
-- Don't not be secure
+- Don't be insecure
 - Do use SSO
 - Don't leave Argo open to the internet
 - Do get permissions right
