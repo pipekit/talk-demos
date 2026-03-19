@@ -1,0 +1,29 @@
+apiVersion: tailscale.com/v1alpha1
+kind: ProxyGroup
+metadata:
+  name: ingress-proxies
+spec:
+  type: ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name:  argo-workflows-server
+  namespace: argo
+  annotations:
+    tailscale.com/proxy-group: ingress-proxies
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+      - argo-workflows-server # The desired MagicDNS name
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: argo-workflows-server 
+            port:
+              number: 2746
