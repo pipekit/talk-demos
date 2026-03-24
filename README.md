@@ -3,6 +3,7 @@
 This repo contains demos from ArgoCon and Open Source Summit.
 
 ## ArgoCon EU 2026
+* [Bring Your Own Artifact Driver To Workflows](argocon-demos/2026-bring-your-own-artifact-driver-to-workflows)
 * [Don't Do What Donny Don't Does: The 10 Dos and 500 Don'ts of Workflows Success](argocon-demos/2026-dont-do-what-donny-dont-does-the-10-dos-and-500-donts-of-workflows-success)
 
 ## ArgoCon EU 2025
