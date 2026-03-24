@@ -3,8 +3,8 @@
 [![Pipekit Logo](https://raw.githubusercontent.com/pipekit/talk-demos/main/assets/images/pipekit-logo.png)](https://pipekit.io?utm_campaign=talk-demos)
 
 
-<!-- ## The talk
-The talk recording [can be found here]().-->
+## The talk
+The talk recording [can be found here](https://www.youtube.com/watch?v=kF6zuGZAgI0).
 
 The slide deck for this talk can be found [here](assets/slide-deck.pdf).
 
