@@ -280,6 +280,5 @@ And finally, by taking the time to understand the relationship between Argo Work
 Remember that Kubernetes is at the heart of your Argo success and to get the best out of your Workflows at scale, you need to keep coming back to Kubernetes at the core.
 
 ## 29
-
 These slides, as well as Becky’s example of using Tailscale to securely access the Argo Server can be found on that github link above.
 If you’d like to chat to us about anything you have seen, you can find Becky on the Tailscale booth this week, and I’ll be either on the Pipekit or the Argo booth throughout Kubecon.
