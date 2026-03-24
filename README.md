@@ -1,6 +1,9 @@
 [![Pipekit Logo](assets/images/pipekit-logo.png)](https://pipekit.io?utm_campaign=talk-demos)
 
-This repo contains demos from ArgoCon and Open Source Summit.
+This repo contains demos from ArgoCon, KubeCon, and Open Source Summit.
+
+## KubeCon + CloudNativeCon EU 2026
+* [Project Lightning Talk: Argo Workflows 4, What's New and What's Next](argocon-demos/2026-argo-workflows-4-whats-new-and-whats-next)
 
 ## ArgoCon EU 2026
 * [Bring Your Own Artifact Driver To Workflows](argocon-demos/2026-bring-your-own-artifact-driver-to-workflows)
