@@ -1,6 +1,9 @@
 [![Pipekit Logo](assets/images/pipekit-logo.png)](https://pipekit.io?utm_campaign=talk-demos)
 
-This repo contains demos from ArgoCon and Open Source Summit.
+This repo contains demos from ArgoCon, KubeCon, and Open Source Summit.
+
+## KubeCon + CloudNativeCon EU 2026
+* [Project Lightning Talk: Argo Workflows 4, What's New and What's Next](argocon-demos/2026-argo-workflows-4-whats-new-and-whats-next)
 
 ## ArgoCon EU 2026
 * [Don't Do What Donny Don't Does: The 10 Dos and 500 Don'ts of Workflows Success](argocon-demos/2026-dont-do-what-donny-dont-does-the-10-dos-and-500-donts-of-workflows-success)
